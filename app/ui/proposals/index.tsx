@@ -45,7 +45,7 @@ export function Proposals() {
         <div className="flex flex-col gap-8 w-full max-w-[722px] mt-8">
             <div className="flex justify-between items-center">
                 <Heading title="Proposals" />
-                <SearchBar />
+                {/* <SearchBar /> */}
             </div>
             {
                 proposals.data === undefined || proposals.isFetching ?
