@@ -3,7 +3,7 @@ import { useGetRealmMeta } from "./useRealm";
 import { Governance, TokenOwnerRecord } from "test-governance-sdk";
 import { PublicKey } from "@solana/web3.js";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { walletNameToAddressAndProfilePicture } from "@portal-payments/solana-wallet-names";
+import { walletNameToAddressAndProfilePicture } from "mythic-solana-wallet-names";
 
 import delegateTokensHanlder from "../actions/delegateTokens";
 
@@ -38,11 +38,15 @@ export function useDelegateTokens(name: string) {
                 try {
                     delegateKey = new PublicKey(newDelegate)
                 } catch {
-                    const walletDetails = await walletNameToAddressAndProfilePicture(connection, newDelegate)       
-                    try {
-                        delegateKey = new PublicKey(walletDetails.walletAddress)
-                    } catch {
-                        throw new Error("Invalid Address.")
+                    const walletDetails = await walletNameToAddressAndProfilePicture(connection, newDelegate)
+                    if (walletDetails.walletAddress) {
+                        try {
+                            delegateKey = new PublicKey(walletDetails.walletAddress)
+                        } catch {
+                            throw new Error("Invalid Address.")
+                        }
+                    } else {
+                        throw new Error("No address found for this wallet.")
                     }
                 }
             }
