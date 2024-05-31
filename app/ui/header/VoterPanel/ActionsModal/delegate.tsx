@@ -12,6 +12,8 @@ import { UseQueryResult } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 import { getLink, txDropErrorMsg } from "@/app/utils/ui-utils";
+import { walletNameToAddressAndProfilePicture } from "@portal-payments/solana-wallet-names";
+import { useConnection } from "@solana/wallet-adapter-react";
 
 export function Delegate(
     {closeModal, voterWeight}:
@@ -19,6 +21,7 @@ export function Delegate(
 ) {
     const realmMeta = useDaoMeta() as RealmMetaType
     const tokenOwnerRecord = useGetTokenOwnerRecord(realmMeta.name).data
+    const {connection} = useConnection()
 
     const [address, setAddress] = useState("")
     const [errorMsg, setError] = useState("")
@@ -50,8 +53,13 @@ export function Delegate(
             try {
                 delegate = new PublicKey(address)
             } catch {
-                setError("Invalid Address.")
-                return
+                const walletDetails = await walletNameToAddressAndProfilePicture(connection, address)       
+                try {
+                    delegate = new PublicKey(walletDetails.walletAddress)
+                } catch {
+                    setError("Invalid Address.")
+                    return
+                }
             }
         }
         
