@@ -7,12 +7,10 @@ import { VoterWeightType } from "@/app/hooks/useVoterWeight";
 import { useDaoMeta } from "@/app/providers/dao-provider";
 import { StandardButton } from "@/app/ui/buttons";
 import { Spinner } from "@/app/ui/animations";
-import { PublicKey } from "@solana/web3.js";
 import { UseQueryResult } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 import { getLink, txDropErrorMsg } from "@/app/utils/ui-utils";
-import { walletNameToAddressAndProfilePicture } from "@portal-payments/solana-wallet-names";
 import { useConnection } from "@solana/wallet-adapter-react";
 
 export function Delegate(
@@ -47,23 +45,13 @@ export function Delegate(
             return
         }
 
-        let delegate: PublicKey | null = null
+        let delegate: string | null = null
         
         if (addDelegate) {
-            try {
-                delegate = new PublicKey(address)
-            } catch {
-                const walletDetails = await walletNameToAddressAndProfilePicture(connection, address)       
-                try {
-                    delegate = new PublicKey(walletDetails.walletAddress)
-                } catch {
-                    setError("Invalid Address.")
-                    return
-                }
-            }
+            delegate = address
         }
         
-        await delegateTokensFn({newDelegate: delegate, tokenOwnerRecord})
+        await delegateTokensFn({newDelegate: delegate, addDelegateTx: addDelegate, tokenOwnerRecord})
         setAddress("")
     }
 
