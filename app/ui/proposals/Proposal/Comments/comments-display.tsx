@@ -46,13 +46,13 @@ export function CommentsDisplay(
         setNewMsg("")
     }
 
-    function loadComments() {
-        const newLoadedCommetns = topLevelMsgsSorted.slice(0, loadedComments.length+8)
+    function loadComments(count: number) {
+        const newLoadedCommetns = topLevelMsgsSorted.slice(0, loadedComments.length+count)
         setLoadedComments(newLoadedCommetns)
     }
 
     useEffect(() => {
-        loadComments()
+        loadComments(1)
     }, [comments])
 
     return (
@@ -98,7 +98,7 @@ export function CommentsDisplay(
                 <div 
                     className="text-sm cursor-pointer" 
                     style={{color: realmMeta.mainColor}}
-                    onClick={loadComments}
+                    onClick={() => loadComments(8)}
                 >
                     Load more comments..
                 </div>

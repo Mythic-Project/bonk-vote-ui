@@ -87,7 +87,7 @@ function OptionDisplay(
                 }}
             >
             </p>
-            <div className="relative z-2 w-full flex gap-2 items-center p-3">
+            <div className={`relative z-2 w-full flex gap-2 items-center p-3 ${!isVotingOver && "cursor-pointer"}`}>
                 <span className={`py-[6px] px-[10px] mr-3 border-[1px]`}
                     style={{
                         backgroundColor: optionSelected && isVoting ? realmMeta.mainColor : realmMeta.primaryBackground,

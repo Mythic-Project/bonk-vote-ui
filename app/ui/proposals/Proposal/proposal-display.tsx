@@ -49,7 +49,7 @@ export function ProposalDisplay(
     const [modalIsOpen, setIsOpen] = useState(false)
     const [votes, setVotes] = useState<number[]>([])
     const [denyVote, setDenyVote] = useState(false)
-    const [showComments, setShowComments] = useState(false)
+    const [showComments, setShowComments] = useState(true)
     const [options, setOptions] = useState<OptionWithVote[]>(
         proposal.denyVoteWeight ?
         [...proposal.options.map((o,i) => ({
