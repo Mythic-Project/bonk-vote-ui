@@ -4482,6 +4482,18 @@ mute-stream@0.0.8:
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.8.tgz#1630c42b2251ff81e2a283de96a5497ea92e5e0d"
   integrity sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==
 
+mythic-solana-wallet-names@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/mythic-solana-wallet-names/-/mythic-solana-wallet-names-2.1.1.tgz#acb1b49980a7c1b2192e85e26347e3614e2adf98"
+  integrity sha512-KhxGYDncZYFGBOF2qpNJCbw5eECCYgeLz8V147VaaXbZdWPiynLnz4YT2G7wDlNXH9jWX+fiFpXtKFjmQdh24Q==
+  dependencies:
+    "@onsol/tldparser" "^0.5.3"
+    "@solana/web3.js" "^1.73.3"
+    "@solflare-wallet/pfp" "^0.1.0"
+    crypto-browserify "^3.12.0"
+    dotenv "^16.0.3"
+    fetch-unfucked "^1.0.0"
+
 mz@^2.7.0:
   version "2.7.0"
   resolved "https://registry.yarnpkg.com/mz/-/mz-2.7.0.tgz#95008057a56cafadc2bc63dde7f9ff6955948e32"
