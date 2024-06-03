@@ -1,5 +1,6 @@
 'use client'
 
+import { useGetCivicIdentity } from "@/app/hooks/useCivicIdentity";
 import { usePostMessage } from "@/app/hooks/usePostComment";
 import { RealmMetaType } from "@/app/hooks/useRealm";
 import { useGetDelegateRecords, useGetTokenOwnerRecord } from "@/app/hooks/useVoterRecord";
@@ -14,6 +15,7 @@ import { useState } from "react";
 import { BsReplyAllFill } from "react-icons/bs";
 import { FaReply } from "react-icons/fa6";
 import { ChatMessage, ProposalV2 } from "test-governance-sdk";
+import ProfileImage from "../profile-image";
 
 dayjs.extend(relativeTime)
 
@@ -23,16 +25,26 @@ export interface ChatMessageWithTimeStamp extends ChatMessage {
 
 function CommentUI(
     {comment, showSubForm, setShowForm, network}: 
-    {comment: ChatMessage, showSubForm?: boolean, network: string, setShowForm?: (b: boolean) => void}
+    {
+        comment: ChatMessage, 
+        showSubForm?: boolean, 
+        network: string, 
+        setShowForm?: (b: boolean) => void, 
+    }
 ) {
     const msg = comment as any as ChatMessageWithTimeStamp
     const realmMeta = useDaoMeta() as RealmMetaType
+    const civicProfile = useGetCivicIdentity(comment.author)
 
     return ( 
         <div className="flex flex-col gap-4 p-4 rounded-lg w-full" style={{backgroundColor: realmMeta.secondaryBackground}}>
             <div className="w-full flex justify-between">
                 <div className="flex gap-3 items-center">
-                    <div className="w-8 h-8 rounded-full" style={{backgroundColor: realmMeta.optionsBackground}}></div>
+                    <ProfileImage 
+                        image={civicProfile.data?.image?.url} 
+                        fallbackAddress={msg.author}
+                        backgroundColor={realmMeta.actionBackground}
+                    />
                     <Link
                         href={getLink(msg.author.toBase58(), "account", network)}
                         target="_blank" 
@@ -40,7 +52,7 @@ function CommentUI(
                         passHref
                     >
                         <h3 className="text-primary-text text-sm">
-                            {ellipsify(msg.author.toBase58())}
+                            {civicProfile.data?.name?.value ?? ellipsify(msg.author.toBase58())}
                         </h3>
                     </Link>
                     <span className="text-placeholder-shade text-xs hidden sm:block">
@@ -79,7 +91,7 @@ export function Comment(
     const realmMeta = useDaoMeta() as RealmMetaType
     const tokenOwnerRecord = useGetTokenOwnerRecord(realmMeta.name).data
     const delegateRecords = useGetDelegateRecords(realmMeta.name).data
-    
+
     const {
         mutateAsync: postMessageAsync,
         isError: postMessageFailed,
@@ -102,7 +114,12 @@ export function Comment(
 
     return (
         <div className="flex flex-col gap-2 w-full items-end">
-            <CommentUI comment={comment} setShowForm={setShowSubForm} showSubForm={showSubForm} network={realmMeta.network}/>
+            <CommentUI 
+                comment={comment} 
+                setShowForm={setShowSubForm} 
+                showSubForm={showSubForm} 
+                network={realmMeta.network}
+            />
             <div className="w-full">
                 {
                     subComments.map(subComment => (

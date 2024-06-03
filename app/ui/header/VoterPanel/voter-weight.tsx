@@ -3,20 +3,19 @@
 import { RealmMetaType } from "@/app/hooks/useRealm"
 import { useGetVoterWeight } from "@/app/hooks/useVoterWeight"
 import { useDaoMeta } from "@/app/providers/dao-provider"
-import { removeZeros } from "@/app/utils/ui-utils"
 import BN from "bn.js"
 import { useState } from "react"
 import { HiLightningBolt } from "react-icons/hi"
 import Modal from "react-modal"
 import { customStyles } from "../../style/modal-style"
-import { useGetDaoMintData } from "@/app/hooks/useMint"
+import { MintInfoType, useGetDaoMintData } from "@/app/hooks/useMint"
 import FormatBalance from "./format-balance"
 
 function VoterWeightDisplay(
     {selfAmount, delegateAmount, mintData} :
     {selfAmount: {votes: BN, tokens: BN},
     delegateAmount: {votes: BN, tokens: BN},
-    mintData: {decimals: number, name: string | undefined} | null | undefined}
+    mintData: MintInfoType | null | undefined}
 ) {
     const [modalIsOpen, setIsOpen] = useState(false);
     const realmMeta = useDaoMeta() as RealmMetaType
@@ -31,6 +30,11 @@ function VoterWeightDisplay(
         <div className="ml-2">
             <div className="flex gap-2 items-center cursor-pointer font-medium" onClick={() => setIsOpen(true)}>
                 <FormatBalance decimals={mintData?.decimals} weight={totalVotesWeight}/>
+                {/* {mintData?.image && 
+                    <span>
+                        <img src={mintData.image} width={24} height={24} alt="token image" className="rounded-full" /> 
+                    </span>
+                } */}
                 <span className="text-secondary-text font-normal">{mintData?.name ? mintData.name : "Votes"}</span>
                 {
                     multiplier > 1 &&
@@ -43,7 +47,7 @@ function VoterWeightDisplay(
             <Modal
                 isOpen={modalIsOpen}
                 onRequestClose={() => setIsOpen(false)}
-                style={customStyles(realmMeta.primaryBackground, realmMeta.primaryBackgroundShade)}
+                style={customStyles(realmMeta.primaryBackground)}
                 contentLabel="Voter Weight"
                 ariaHideApp={false}
             >

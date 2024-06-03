@@ -14,7 +14,7 @@ type OptionDataType = {
     index: number, 
     totalVotes: BN,
     isVoting: boolean,
-    tokenName: string | undefined,
+    tokenName: string | null | undefined,
     decimals: number | undefined,
     setDenyVote: (b: boolean) => void,
     setVotes: (v: number[]) => void,

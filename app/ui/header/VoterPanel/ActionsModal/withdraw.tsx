@@ -6,7 +6,7 @@ import { VoterWeightType } from "@/app/hooks/useVoterWeight";
 import { useDaoMeta } from "@/app/providers/dao-provider";
 import { StandardButton } from "@/app/ui/buttons";
 import { UseQueryResult } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Balance, calculateBalance, calculateWithdrawableBalance } from "./balance";
 import BN from "bn.js";
 import { ConfirmWithdraw } from "./withdraw-confirm";
@@ -26,9 +26,22 @@ export function Withdraw(
     const daoMintData = useGetDaoMintData(realmMeta.name).data
     const voteRecords = useGetVoteRecords(realmMeta.name).data
 
-    const withdrawableAmount = voterWeight.data ?
-       calculateWithdrawableBalance(voterWeight.data.selfAmount.withdrawableAmounts) :
-       new BN(0)
+    const withdrawableAmount = useMemo(() => {
+        return voterWeight.data ?
+        calculateWithdrawableBalance(voterWeight.data.selfAmount.withdrawableAmounts) :
+        new BN(0)
+    }, [voterWeight.data])
+
+    useEffect(() => {
+        if (!daoMintData) return
+
+        const amount = calculateBalance(
+            withdrawableAmount,
+            daoMintData.decimals
+        )
+
+        setAmount(amount)
+    }, [daoMintData, withdrawableAmount])
 
     function setMax() {
         if (!voterWeight.data || !daoMintData) return
