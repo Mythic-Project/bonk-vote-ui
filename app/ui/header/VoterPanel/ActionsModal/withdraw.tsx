@@ -81,6 +81,11 @@ export function Withdraw(
             baseAmount = baseAmount.add(new BN(deciWithPow))
         }
 
+        if (baseAmount.eq(new BN(0))) {
+            setError("Select amount greater than 0.")
+            return
+        }
+
         if (baseAmount.gt(withdrawableAmount[selectedMint].amount)) {
             setError("Insufficient tokens. Try with lower amount.")
             return

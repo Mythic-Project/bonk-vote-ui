@@ -43,12 +43,17 @@ export function Add(
 
         setAmount(amount)
     }
-
+    
     async function handleSubmit() {
         setError("")
         
         if (!tokensHolding.data) {
             setError("The data is not fully loaded, try again after a few seconds.")
+            return
+        }
+
+        if (!tokensHolding.data.length) {
+            setError("You don't have any token holding.")
             return
         }
 
@@ -117,7 +122,7 @@ export function Add(
                     Balance: {
                         tokensHolding.isFetching ?
                             <div>Loading..</div> :
-                        tokensHolding.data ? 
+                        tokensHolding.data && tokensHolding.data.length > 0 ? 
                             <Balance holding={tokensHolding.data[selectedToken]} /> : 
                             "NIL"
                     }
