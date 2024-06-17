@@ -30,16 +30,12 @@ export function ActionsModal(
     const tokensHolding = useGetTokensHolding(realmMeta.name)
 
     return (
-        <div className="flex flex-col gap-2 items-center p-4">
-            <div className="flex gap-8 items-center mb-4">
-                <StandardButton title="Add" onClick={() => setAction(1)} 
-                    style={action === 1 ? {backgroundColor: realmMeta.actionBackground } : undefined}
-                />
-                <StandardButton title="Withdraw" onClick={() => setAction(2)} 
-                    style={action === 2 ? {backgroundColor: realmMeta.actionBackground } : undefined}
-                />
-                <StandardButton title="Delegate" onClick={() => setAction(3)} 
-                    style={action === 3 ? {backgroundColor: realmMeta.actionBackground } : undefined}
+        <div className="flex flex-col gap-2 items-center px-4 pt-4">
+            <div className="mb-2 flex items-start w-full">
+                <StandardButton 
+                    vibrant={true}
+                    title={action === 1 ? "Add" : action === 2 ? "Withdraw" : "Delegate"}
+                    style={{backgroundColor: realmMeta.actionBackground }}
                 />
             </div>
            {

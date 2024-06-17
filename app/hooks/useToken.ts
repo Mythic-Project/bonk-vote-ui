@@ -35,33 +35,43 @@ export function useGetTokensHolding(name: string) {
                 return null
             }
             
-            const mint = registrar ?
-                registrar.data.votingMints.find(v => !v.baselineVoteWeightScaledFactor.eq(new BN(0)))?.mint :
-                new PublicKey(selectedRealm.tokenMint)
+            const mintsForRegistrar = registrar ? 
+                registrar.data.votingMints.filter(v => !v.baselineVoteWeightScaledFactor.eq(new BN(0))) :
+                null
             
-            if (!mint) {
+            const mints = mintsForRegistrar ?
+                mintsForRegistrar.map(v => v.mint) :
+                [new PublicKey(selectedRealm.tokenMint)]
+            
+            if (mints.length === 0) {
                 return null
             }
 
-            const userAta = anchor.utils.token.associatedAddress({mint, owner: publicKey})
+            const holdings: TokenHoldingReturnType[] = []
 
-            try {
-                const acc = await connection.getParsedAccountInfo(userAta)
-                const parsedData = acc.value?.data as any
+            for (const mint of mints) {
+                const userAta = anchor.utils.token.associatedAddress({mint, owner: publicKey})
 
-                const holding: TokenHoldingReturnType = {
-                    mint,
-                    account: userAta,
-                    balance: parsedData.parsed.info.tokenAmount ? parsedData.parsed.info.tokenAmount.amount : "0",
-                    decimals: parsedData.parsed.info.tokenAmount ? parsedData.parsed.info.tokenAmount.decimals : 0,
+                try {
+                    const acc = await connection.getParsedAccountInfo(userAta)
+                    const parsedData = acc.value?.data as any
+    
+                    const holding: TokenHoldingReturnType = {
+                        mint,
+                        account: userAta,
+                        balance: parsedData.parsed.info.tokenAmount ? parsedData.parsed.info.tokenAmount.amount : "0",
+                        decimals: parsedData.parsed.info.tokenAmount ? parsedData.parsed.info.tokenAmount.decimals : 0,
+                    }
+    
+                    console.log("fetched token holding")
+                    holdings.push(holding)
+                } catch(e) {
                 }
-
-                console.log("fetched token holding")
-                return holding
-            } catch {
-                return null
             }
+            
+            return holdings
         },
-        refetchOnWindowFocus: false
+        refetchOnWindowFocus: false,
+        staleTime: Infinity
     })
 }

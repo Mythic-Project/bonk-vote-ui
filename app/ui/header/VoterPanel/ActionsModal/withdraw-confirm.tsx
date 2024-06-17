@@ -13,6 +13,7 @@ import { VoteRecordWithGov } from "@/app/hooks/useVoteRecord";
 import { VoterWeightType } from "@/app/hooks/useVoterWeight";
 import { Spinner } from "@/app/ui/animations";
 import { getLink, txDropErrorMsg } from "@/app/utils/ui-utils";
+import { PublicKey } from "@solana/web3.js";
 
 export function ConfirmWithdraw(
     {
@@ -21,15 +22,17 @@ export function ConfirmWithdraw(
         setAmount,
         setWithdrawPage,
         voteRecords,
-        voterWeight
+        voterWeight,
+        selectedMint
     } :
     {
         closeModal: () => void,
         amount: BN, 
         setAmount: (s: string) => void,
-        setWithdrawPage: (n: 1 | 2) => void,
+        setWithdrawPage: (n: 1 | 2 | 3) => void,
         voteRecords: VoteRecordWithGov[],
-        voterWeight: VoterWeightType
+        voterWeight: VoterWeightType,
+        selectedMint: PublicKey
     }
 ) {
     const realmMeta = useDaoMeta() as RealmMetaType
@@ -57,12 +60,12 @@ export function ConfirmWithdraw(
             return
         }
 
-        await withdrawTokensFn({amount, tokenOwnerRecord, voteRecords, voterWeight})
-        setAmount("0")
+        await withdrawTokensFn({amount, tokenOwnerRecord, voteRecords, voterWeight, depositMint: selectedMint})
+        setWithdrawPage(3)
     }
 
     return (
-        <div className="w-80 flex flex-col items-center text-center gap-4">
+        <div className="w-80 flex flex-col items-center text-center gap-4 mb-4">
             <MdOutlineHowToVote className="text-placeholder-shade text-7xl"/>
 
             <h2 className="font-medium text-primary-text">

@@ -24,13 +24,15 @@ export function useWithdrawTokens(name: string) {
                 amount, 
                 tokenOwnerRecord, 
                 voteRecords,
-                voterWeight
+                voterWeight,
+                depositMint
             }:
             {
                 amount: BN, 
                 tokenOwnerRecord: TokenOwnerRecord, 
                 voteRecords: VoteRecordWithGov[],
-                voterWeight: VoterWeightType
+                voterWeight: VoterWeightType,
+                depositMint: PublicKey
             }
         ): Promise<string | null> => {
 
@@ -48,11 +50,13 @@ export function useWithdrawTokens(name: string) {
                 govClient,
                 new PublicKey(selectedRealm.realmId),
                 new PublicKey(selectedRealm.tokenMint),
+                depositMint,
                 publicKey,
                 amount,
                 tokenOwnerRecord,
                 voteRecords,
                 voterWeight,
+                registrar,
                 vsrClient
             )
 

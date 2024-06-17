@@ -4,7 +4,7 @@ import { Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 import { Governance, TokenOwnerRecord } from "test-governance-sdk";
 import { VoterStakeRegistry } from "../plugin/VoterStakeRegistry/idl";
-import { registrarKey, voterRecordKey, vsrRecordKey } from "../plugin/VoterStakeRegistry/utils";
+import { Registrar, registrarKey, voterRecordKey, vsrRecordKey } from "../plugin/VoterStakeRegistry/utils";
 import * as anchor from "@coral-xyz/anchor";
 import { VoteRecordWithGov } from "../hooks/useVoteRecord";
 import { VoterWeightType } from "../hooks/useVoterWeight";
@@ -17,12 +17,14 @@ export async function withdrawTokensHandler(
     govClient: Governance,
     realmAccount: PublicKey,
     tokenMint: PublicKey,
+    depositMint: PublicKey,
     userAccount: PublicKey,
     amount: BN,
     tokenOwnerRecord: TokenOwnerRecord,
     voteRecords: VoteRecordWithGov[],
     voterWeight: VoterWeightType,
-    vsrClient?: Program<VoterStakeRegistry> | undefined
+    registrar: Registrar | null,
+    vsrClient?: Program<VoterStakeRegistry> | undefined,
 ) {
     const ixs: TransactionInstruction[] = []
 
@@ -44,11 +46,7 @@ export async function withdrawTokensHandler(
         ixs.push(relinquishIx)
     })
 
-    const registrar = vsrClient ? 
-        registrarKey(realmAccount, tokenMint, vsrClient.programId) : 
-        undefined
-
-    const userAta = anchor.utils.token.associatedAddress({mint: tokenMint, owner: userAccount})
+    const userAta = anchor.utils.token.associatedAddress({mint: depositMint, owner: userAccount})
     const doesUserAtaExist = await connection.getAccountInfo(userAta)
 
     if (!doesUserAtaExist) {
@@ -65,25 +63,43 @@ export async function withdrawTokensHandler(
     if (registrar && vsrClient) {
         const [voterKey] = voterRecordKey(realmAccount, tokenMint, userAccount, vsrClient.programId)
         const [vwrKey] = vsrRecordKey(realmAccount, tokenMint, userAccount, vsrClient.programId)
-        const voterAta = anchor.utils.token.associatedAddress({mint: tokenMint, owner: voterKey})
+        const voterAta = anchor.utils.token.associatedAddress({mint: depositMint, owner: voterKey})
+        const deposits = (await vsrClient.account.voter.fetch(voterKey)).deposits
 
-        voterWeight.selfAmount.entryIdx.forEach(async(idx, i) => {
-            const withdawIx = await vsrClient.methods.withdraw(
-                idx, 
-                amount // This amount can be greater than Entry balance TODO.
-            ).accounts({
-                registrar,
-                voter: voterKey,
-                voterAuthority: userAccount,
-                tokenOwnerRecord: tokenOwnerRecord.publicKey,
-                voterWeightRecord: vwrKey,
-                vault: voterAta,
-                destination: userAta
-            })
-            .instruction()
+        let amountRemaining = amount
+        let currentIndex = 0
 
-            ixs.push(withdawIx)
-        })
+        while(amountRemaining.gt(new BN(0))) {
+            const currentDepositAmt = deposits[currentIndex].amountDepositedNative
+
+            if (
+                deposits[currentIndex].isUsed && 
+                registrar.data.votingMints[deposits[currentIndex].votingMintConfigIdx].mint.equals(depositMint) &&
+                currentDepositAmt.gt(new BN(0)) &&
+                deposits[currentIndex].lockup.kind.none !== undefined
+            ) {
+                const amtToWithdraw = amount.gt(currentDepositAmt) ? currentDepositAmt : amount
+
+                const withdawIx = await vsrClient.methods.withdraw(
+                    currentIndex, 
+                    amtToWithdraw
+                ).accounts({
+                    registrar: registrar.publicKey,
+                    voter: voterKey,
+                    voterAuthority: userAccount,
+                    tokenOwnerRecord: tokenOwnerRecord.publicKey,
+                    voterWeightRecord: vwrKey,
+                    vault: voterAta,
+                    destination: userAta
+                })
+                .instruction()
+    
+                ixs.push(withdawIx)
+                amountRemaining = amountRemaining.sub(amtToWithdraw)
+            }
+
+            currentIndex++
+        }
     } else {
         const vanillaWitdrawIx = await govClient.withdrawGoverningTokensInstruction(
             realmAccount,
@@ -93,7 +109,7 @@ export async function withdrawTokensHandler(
         )
 
         ixs.push(vanillaWitdrawIx)
-        const remainingBalance = voterWeight.selfAmount.tokens.sub(amount)
+        const remainingBalance = voterWeight.selfAmount.tokens[0].amount.sub(amount)
 
         if (remainingBalance.gt(new BN(0))) {
             const vanillaDepositIx = await govClient.depositGoverningTokensInstruction(

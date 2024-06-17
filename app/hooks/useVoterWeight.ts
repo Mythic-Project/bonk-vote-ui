@@ -13,21 +13,23 @@ import { useGetRegistrar } from "./useVsr"
 
 const DEFAULT_RETURN_VALUE = {
     votes: new BN(0),
-    tokens: new BN(0)
+}
+
+export type VoterWeightTokensType = {
+    amount: BN,
+    mint: PublicKey,
+    isLocked: boolean
 }
 
 export type VoterWeightType = {
     selfAmount: {
         votes: BN,
-        tokens: BN,
+        tokens: VoterWeightTokensType[],
         isVsr: boolean,
-        entryIdx: number[],
-        withdrawableAmounts: BN[],
         delegate: PublicKey | null
     },
     delegateAmount: {
         votes: BN,
-        tokens: BN
     }
 }
 
@@ -68,15 +70,16 @@ export function useGetVoterWeight(
                 return {
                     selfAmount: {
                         votes: tokenOwnerRecord ? tokenOwnerRecord.governingTokenDepositAmount : new BN(0),
-                        tokens: tokenOwnerRecord ? tokenOwnerRecord.governingTokenDepositAmount : new BN(0),
+                        tokens: [{
+                                amount: tokenOwnerRecord ? tokenOwnerRecord.governingTokenDepositAmount : new BN(0),
+                                mint: new PublicKey(realmMeta.tokenMint),
+                                isLocked: false
+                            }],
                         isVsr: false,
-                        entryIdx: [],
-                        withdrawableAmounts: [tokenOwnerRecord ? tokenOwnerRecord.governingTokenDepositAmount : new BN(0)],
                         delegate: tokenOwnerRecord ? tokenOwnerRecord.governanceDelegate : null
                     },
                     delegateAmount: {
                         votes: delegateRecords ? delegateRecords.reduce((a,b) => a.add(b.governingTokenDepositAmount), new BN(0)) : new BN(0),
-                        tokens: delegateRecords ? delegateRecords.reduce((a,b) => a.add(b.governingTokenDepositAmount), new BN(0)) : new BN(0),
                     }
                 }
             }
@@ -93,7 +96,15 @@ export function useGetVoterWeight(
                         vsrClient,
                         registrar,
                     ) : 
-                    {...DEFAULT_RETURN_VALUE, isVsr: true, withdrawableAmounts: [], entryIdx: [], delegate: null},
+                    {
+                        votes: new BN(0),
+                        tokens: [{
+                            amount: new BN(0),
+                            mint: new PublicKey(realmMeta.tokenMint),
+                            isLocked: false
+                        }],
+                        isVsr: true, delegate: null
+                    },
                 delegateAmount: delegateRecords ?
                     await getDelegateAmount(delegateRecords, vsrClient, registrar) :
                     {...DEFAULT_RETURN_VALUE}
@@ -126,23 +137,27 @@ async function getSelfAmount(
         const deposits = (await client.account.voter.fetch(voterKey)).deposits
         return {
             votes: computeVsrWeight(deposits, registrar.data.votingMints),
-            tokens: deposits.reduce((a,b) => a.add(b.amountDepositedNative),new BN(0)),
+            tokens: deposits.flatMap(d => d.amountDepositedNative.gt(new BN(0)) ?
+                [{
+                    amount: d.amountDepositedNative,
+                    mint: registrar.data.votingMints[d.votingMintConfigIdx].mint,
+                    isLocked: d.lockup.kind.none === undefined
+                }] : 
+                []
+            ),
             isVsr: true,
-            entryIdx: deposits
-                .filter(deposit => deposit.isUsed && deposit.lockup.kind.none)
-                .map((_,index) => index),
-            withdrawableAmounts: deposits
-                .filter(deposit => deposit.isUsed && deposit.lockup.kind.none)
-                .map((deposit) => deposit.amountDepositedNative),
             delegate
         }
     } catch(e) {
         console.log(e)
         return {
-            ...DEFAULT_RETURN_VALUE,
+            votes: new BN(0),
+            tokens: [{
+                amount: new BN(0),
+                mint: tokenMint,
+                isLocked: false
+            }],
             isVsr: true,
-            entryIdx: [],
-            withdrawableAmounts: [],
             delegate: null
         }
     }
@@ -152,9 +167,8 @@ async function getDelegateAmount(
     delegateRecords: TokenOwnerRecord[], 
     client: Program<VoterStakeRegistry>,
     registrar: Registrar
-): Promise<{votes: BN, tokens: BN}> {
+): Promise<{votes: BN}> {
     const delegateVotes = []
-    const delegateTokens = []
 
     try {
         for (const record of delegateRecords) {
@@ -166,14 +180,11 @@ async function getDelegateAmount(
             )
             const weightRecord = await client.account.voter.fetch(voterKey)
             const weight = computeVsrWeight(weightRecord.deposits, registrar.data.votingMints)
-            const tokens = weightRecord.deposits.reduce((a,b) => a.add(b.amountDepositedNative),new BN(0))
             delegateVotes.push(weight)
-            delegateTokens.push(tokens)
         }
     
         return {
             votes: delegateVotes.reduce((a,b) => a.add(b), new BN(0)),
-            tokens: delegateTokens.reduce((a,b) => a.add(b), new BN(0))
         }
     } catch {
         return {...DEFAULT_RETURN_VALUE}

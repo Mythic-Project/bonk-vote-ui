@@ -18,8 +18,8 @@ export function useAddTokens(name: string) {
     return useMutation({
         mutationKey: ["add-tokens-mutation", {name, publicKey: wallet.publicKey}],
         mutationFn: async(
-            {tokenAccount, amount}:
-            {tokenAccount: PublicKey, amount: BN}
+            {tokenAccount, amount, mint}:
+            {tokenAccount: PublicKey, amount: BN, mint: PublicKey}
         ): Promise<string | null> => {
 
             if (!selectedRealm || !wallet.publicKey || registrar === undefined) {
@@ -36,10 +36,12 @@ export function useAddTokens(name: string) {
                 govClient,
                 new PublicKey(selectedRealm.realmId),
                 new PublicKey(selectedRealm.tokenMint),
+                mint,
                 tokenAccount,
                 publicKey,
                 amount,
-                vsrClient
+                registrar,
+                vsrClient,
             )
 
             return sig

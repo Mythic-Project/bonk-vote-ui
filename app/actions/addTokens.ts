@@ -3,7 +3,7 @@ import { Connection, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, TransactionInstructi
 import BN from "bn.js";
 import sendTransaction from "../utils/send-transaction";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { DepositEntry, registrarKey, voterRecordKey, vsrRecordKey } from "../plugin/VoterStakeRegistry/utils";
+import { DepositEntry, Registrar, voterRecordKey, vsrRecordKey } from "../plugin/VoterStakeRegistry/utils";
 import { Program } from "@coral-xyz/anchor";
 import { VoterStakeRegistry } from "../plugin/VoterStakeRegistry/idl";
 import * as anchor from "@coral-xyz/anchor";
@@ -14,16 +14,17 @@ async function addTokensHandler(
     ixClient: Governance,
     realmAccount: PublicKey,
     tokenMint: PublicKey,
+    depositMint: PublicKey,
     tokenAccount: PublicKey,
     userAccount: PublicKey,
     amount: BN,
+    registrarData: Registrar | null,
     vsrClient?: Program<VoterStakeRegistry> | undefined
 ) {
     const ixs: TransactionInstruction[] = []
-    const registrar = vsrClient ? registrarKey(realmAccount, tokenMint, vsrClient.programId) : undefined
 
     // VSR Deposit
-    if (registrar && vsrClient) {
+    if (registrarData && vsrClient) {
         const tokenOwnerRecordKey = ixClient.pda.tokenOwnerRecordAccount({
             realmAccount, governingTokenMintAccount: tokenMint, governingTokenOwner: userAccount
         }).publicKey
@@ -39,7 +40,7 @@ async function addTokensHandler(
 
         const [voterKey, voterBump] = voterRecordKey(realmAccount, tokenMint, userAccount, vsrClient.programId)
         const [vwrKey, vwrBump] = vsrRecordKey(realmAccount, tokenMint, userAccount, vsrClient.programId)
-        const voterAta = anchor.utils.token.associatedAddress({mint: tokenMint, owner: voterKey})
+        const voterAta = anchor.utils.token.associatedAddress({mint: depositMint, owner: voterKey})
 
         let deposits: DepositEntry[] = []
 
@@ -49,7 +50,7 @@ async function addTokensHandler(
         } catch {
             const createVoterIx = await vsrClient.methods.createVoter(voterBump, vwrBump)
             .accounts({
-                registrar,
+                registrar: registrarData.publicKey,
                 voter: voterKey,
                 voterAuthority: userAccount,
                 voterWeightRecord: vwrKey,
@@ -63,7 +64,8 @@ async function addTokensHandler(
         let depositEntryIndex = 0
 
         let availableDeposit = deposits.findIndex(
-            deposit => deposit.isUsed && deposit.lockup.kind.none
+            deposit => deposit.isUsed && deposit.lockup.kind.none && 
+                registrarData.data.votingMints[deposit.votingMintConfigIdx].mint.equals(depositMint)
         )
 
         if (availableDeposit === -1) {
@@ -83,10 +85,10 @@ async function addTokensHandler(
                     0,
                     false
                 ).accounts({
-                    registrar,
+                    registrar: registrarData.publicKey,
                     voter: voterKey,
                     voterAuthority: userAccount,
-                    depositMint: tokenMint,
+                    depositMint,
                     vault: voterAta,
                     payer: userAccount
                 }).instruction()
@@ -100,7 +102,7 @@ async function addTokensHandler(
                 depositEntryIndex, 
                 amount
             ).accounts({
-                registrar,
+                registrar: registrarData.publicKey,
                 voter: voterKey,
                 vault: voterAta,
                 depositToken: tokenAccount,

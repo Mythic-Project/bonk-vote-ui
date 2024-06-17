@@ -6,83 +6,101 @@ import {publicKey} from "@metaplex-foundation/umi"
 import { PublicKey } from "@solana/web3.js"
 import { useGetRealmConfig, useGetRealmMeta } from "./useRealm"
 import axios from "axios"
+import { useGetRegistrar } from "./useVsr"
+import { ellipsify } from "../utils/ui-utils"
+import { BN } from "bn.js"
 
 export type MintInfoType = {
+    address: PublicKey,
     name: string | null,
     decimals: number,
     image: string | null
 }
+
 export function useGetDaoMintData(name: string) {
     const {connection} = useConnection()
     const realmMeta = useGetRealmMeta(name)
     const realmConfig = useGetRealmConfig(name).data
+    const registrar = useGetRegistrar(name).data
 
     return useQuery({
-        enabled: realmConfig !== undefined,
+        enabled: realmConfig !== undefined && registrar !== undefined,
         queryKey: ['get-mint-data', {name}],
-        queryFn: async(): Promise<MintInfoType | null> => {
+        queryFn: async(): Promise<MintInfoType[] | null> => {
             if (!realmConfig || !realmMeta) {
                 return null
             }
             
-            const voterWeightAddin = realmMeta.tokenType === "council" ? 
-                realmConfig.councilTokenConfig.voterWeightAddin :
-                realmConfig.communityTokenConfig.voterWeightAddin
+            const mintsForRegistrar = registrar ? 
+                registrar.data.votingMints.filter(v => !v.baselineVoteWeightScaledFactor.eq(new BN(0))) :
+                null
             
-            try {
-                const tokenInfo = await connection.getParsedAccountInfo(new PublicKey(realmMeta.tokenMint))
-                const parsedData = tokenInfo.value?.data as any
-                const decimals = parsedData.parsed.info.decimals as number
-                console.log("fetched mint data")
-
-                if (voterWeightAddin) {
-                    return {
-                        decimals,
-                        name: null,
-                        image: null
-                    }
-                }
-
-                try {
-                    const umi = createUmi(connection.rpcEndpoint)
-                    const metadataKey = findMetadataPda(umi, {mint: publicKey(realmMeta.tokenMint) })
-                    const metadata = await fetchMetadata(umi, metadataKey) 
-                    console.log("fetched metadata")
-
-                    try {
-                        const uriInfo = await axios.get(metadata.uri)
-                        if (uriInfo.data.image) {
-                            const imageLink = uriInfo.data.image as string
-                            return {
-                                decimals,
-                                name: metadata.symbol,
-                                image: imageLink
-                            }
-                        }
-
-                        return {
-                            decimals,
-                            name: metadata.symbol,
-                            image: null
-                        }
-                    } catch {
-                        return {
-                            decimals,
-                            name: metadata.symbol,
-                            image: null
-                        }
-                    }
-                } catch {
-                    return {
-                        decimals,
-                        name: null,
-                        image: null
-                    }
-                }
-            } catch(e) {
-                console.log(e)
+            const mints = mintsForRegistrar ?
+                mintsForRegistrar.map(v => v.mint) :
+                [new PublicKey(realmMeta.tokenMint)]
+            
+            if (mints.length === 0) {
                 return null
             }
+
+            const umi = createUmi(connection.rpcEndpoint)
+
+            const mintInfos: MintInfoType[] = []
+
+            for (const mint of mints) {
+                try {
+                    const tokenInfo = await connection.getParsedAccountInfo(mint)
+                    const parsedData = tokenInfo.value?.data as any
+                    const decimals = parsedData.parsed.info.decimals as number
+                    console.log(`fetched mint data for ${ellipsify(mint.toBase58())}`)
+    
+                    try {
+                        const metadataKey = findMetadataPda(umi, {mint: publicKey(mint) })
+                        const metadata = await fetchMetadata(umi, metadataKey) 
+                        console.log(`fetched metadata for ${ellipsify(mint.toBase58())}`)
+    
+                        try {
+                            const uriInfo = await axios.get(metadata.uri)
+                            if (uriInfo.data.image) {
+                                const imageLink = uriInfo.data.image as string
+                                mintInfos.push({
+                                    decimals,
+                                    name: metadata.symbol,
+                                    image: imageLink,
+                                    address: mint
+                                })
+                            }
+    
+                            mintInfos.push({
+                                decimals,
+                                name: metadata.symbol,
+                                image: null,
+                                address: mint
+
+                            })
+                        } catch {
+                            mintInfos.push({
+                                decimals,
+                                name: metadata.symbol,
+                                image: null,
+                                address: mint
+                            })
+                        }
+                    } catch {
+                        mintInfos.push({
+                            decimals,
+                            name: null,
+                            image: null,
+                            address: mint
+                        })
+                    }
+                } catch(e) {
+                    console.log(e)
+                    return null
+                }
+            }
+
+            return mintInfos  
         },
         refetchOnWindowFocus: false,
         staleTime: Infinity

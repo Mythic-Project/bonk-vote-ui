@@ -151,8 +151,8 @@ function ProposalOptions(
                     index={index} 
                     key={index} 
                     totalVotes={totalVotes}
-                    decimals={mintDetails?.decimals}
-                    tokenName={mintDetails?.name}
+                    decimals={mintDetails?.[0].decimals}
+                    tokenName={mintDetails?.[0].name}
                     votes={votes}
                     setDenyVote={setDenyVote}
                     setVotes={setVotes}

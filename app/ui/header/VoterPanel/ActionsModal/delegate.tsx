@@ -10,7 +10,7 @@ import { Spinner } from "@/app/ui/animations";
 import { UseQueryResult } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
-import { getLink, txDropErrorMsg } from "@/app/utils/ui-utils";
+import { ellipsify, getLink, txDropErrorMsg } from "@/app/utils/ui-utils";
 import { useConnection } from "@solana/wallet-adapter-react";
 
 export function Delegate(
@@ -76,9 +76,11 @@ export function Delegate(
                                 Remove
                             </button>
                         </div>
-                        <span className="text-primary-text text-[12px]">
-                            {voterWeight.data.selfAmount.delegate.toBase58()}
+                        <Link href={getLink(voterWeight.data.selfAmount.delegate.toBase58(), "account", realmMeta.network)}>
+                        <span className="text-primary-text text-[12px] cursor-pointer">
+                            {ellipsify(voterWeight.data.selfAmount.delegate.toBase58(),16)}
                         </span>
+                        </Link>
                     </div>
             }
             

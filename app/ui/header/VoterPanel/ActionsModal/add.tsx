@@ -1,7 +1,7 @@
 'use client'
 
 import { RealmMetaType } from "@/app/hooks/useRealm";
-import { TokenHoldingReturnType, useGetTokensHolding } from "@/app/hooks/useToken";
+import { TokenHoldingReturnType } from "@/app/hooks/useToken";
 import { useDaoMeta } from "@/app/providers/dao-provider";
 import { StandardButton } from "@/app/ui/buttons";
 import { Balance, calculateBalance } from "./balance";
@@ -12,15 +12,21 @@ import Link from "next/link";
 import { UseQueryResult } from "@tanstack/react-query";
 import { Spinner } from "@/app/ui/animations";
 import { getLink } from "@/app/utils/ui-utils";
+import AddTokensList from "./add-tokens-list";
+import AddFinalize from "./add-finalize";
 
 export function Add(
     {closeModal, tokensHolding}:
-    {closeModal: () => void, tokensHolding: UseQueryResult<TokenHoldingReturnType | null, Error>}
+    {closeModal: () => void, tokensHolding: UseQueryResult<TokenHoldingReturnType[] | null, Error>}
 ) {
     const realmMeta = useDaoMeta() as RealmMetaType
+
+    // 1 for Add Form, 2 for Add Finalisation
+    const [addPage, setAddPage] = useState<1 | 2>(1)
     const [amount, setAmount] = useState("")
     const [errorMsg, setError] = useState("")
-
+    const [selectedToken, setSelectedToken] = useState(0)
+    
     const {
         mutateAsync: addTokensFn, 
         isError: addTokensFailed, 
@@ -31,8 +37,8 @@ export function Add(
     function setMax() {
         if (!tokensHolding.data) return
         const amount = calculateBalance(
-            new BN(tokensHolding.data.balance),
-            tokensHolding.data.decimals
+            new BN(tokensHolding.data[selectedToken].balance),
+            tokensHolding.data[selectedToken].decimals
         )
 
         setAmount(amount)
@@ -42,13 +48,13 @@ export function Add(
         setError("")
         
         if (!tokensHolding.data) {
-            setError("Unable to retrieve token holdings, try again.")
+            setError("The data is not fully loaded, try again after a few seconds.")
             return
         }
 
-        const maxAmount = new BN(tokensHolding.data.balance)
+        const maxAmount = new BN(tokensHolding.data[selectedToken].balance)
 
-        const decimals = tokensHolding.data!.decimals
+        const decimals = tokensHolding.data[selectedToken].decimals
         const [base, deci] = amount.split(".")
         const pow = new BN(10).pow(new BN(decimals))
         let baseAmount = new BN(base).mul(pow)
@@ -63,21 +69,39 @@ export function Add(
             return
         }
 
+        if (!baseAmount.gt(new BN(0))) {
+            setError("No amount entered")
+            return
+        }
+
         await addTokensFn({
-            tokenAccount: tokensHolding.data.account,
-            amount: baseAmount
+            tokenAccount: tokensHolding.data[selectedToken].account,
+            amount: baseAmount,
+            mint: tokensHolding.data[selectedToken].mint
         })
 
         setAmount("")
+        setAddPage(2)
     }
 
     return (
+        addPage === 1 ? 
         <div className="w-80">
 
-             <h2 className="font-medium text-primary-text mb-4">
+            <h2 className="font-medium text-primary-text mb-4">
                 Add tokens to vote on proposals
             </h2>
 
+            {
+                tokensHolding.data && tokensHolding.data.length > 1 &&
+                <AddTokensList 
+                    setSelectedToken={setSelectedToken} 
+                    tokensHolding={tokensHolding.data} 
+                    selectedToken={selectedToken}
+                />
+    
+            }
+        
             <hr className="border-[1px] w-full mb-6" style={{borderColor: realmMeta.secondaryBackground}} />
 
             <input type="number" placeholder={"0"} className="
@@ -94,7 +118,7 @@ export function Add(
                         tokensHolding.isFetching ?
                             <div>Loading..</div> :
                         tokensHolding.data ? 
-                            <Balance holding={tokensHolding.data} /> : 
+                            <Balance holding={tokensHolding.data[selectedToken]} /> : 
                             "NIL"
                     }
                     </h4>
@@ -152,6 +176,11 @@ export function Add(
                         ""
                 }
             </div>
-        </div>
+        </div> :
+        <AddFinalize 
+            borderColor={realmMeta.actionBackground} 
+            buttonColor={realmMeta.mainColor}
+            closeModal={closeModal}
+        />
     )
 }

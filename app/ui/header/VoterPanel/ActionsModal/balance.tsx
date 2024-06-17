@@ -1,3 +1,4 @@
+import { VoterWeightTokensType } from "@/app/hooks/useVoterWeight";
 import { removeZeros } from "@/app/utils/ui-utils";
 import BN from "bn.js";
 
@@ -12,8 +13,23 @@ export function calculateBalance(amount: BN, decimals: number) {
     return baseString+deciSign+removeZeros(deciString)
 }
 
-export function calculateWithdrawableBalance(amounts: BN[]) {
-    return amounts.reduce((a,b) => a.add(b), new BN(0))
+export function calculateWithdrawableBalance(amounts: VoterWeightTokensType[]) {
+    const balances = []
+
+    for (const amount of amounts) {
+        const elExists = balances.findIndex(b => b.mint.equals(amount.mint))
+
+        if (elExists === -1) {
+            balances.push({
+                mint: amount.mint,
+                amount: amount.amount
+            })
+        } else {
+            balances[elExists].amount = balances[elExists].amount.add(amount.amount)
+        }
+    }
+
+    return balances
 }
 
 export function Balance(
