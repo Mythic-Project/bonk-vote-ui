@@ -6,6 +6,7 @@ import { Footer } from "../ui/footer";
 import { useDaoMeta } from "../providers/dao-provider";
 import { RealmMetaType } from "../hooks/useRealm";
 import { GradientBackground } from "../ui/background";
+import Transition from "../ui/transition";
 
 function DaoUi() {
   const realmMeta = useDaoMeta() as RealmMetaType
@@ -21,6 +22,7 @@ function DaoUi() {
         <GradientBackground />
         <Header />
         <Proposals /> 
+        <Transition />
         <Footer />
       </main>
   );

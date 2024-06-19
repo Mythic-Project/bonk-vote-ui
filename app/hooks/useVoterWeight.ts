@@ -26,7 +26,8 @@ export type VoterWeightType = {
         votes: BN,
         tokens: VoterWeightTokensType[],
         isVsr: boolean,
-        delegate: PublicKey | null
+        delegate: PublicKey | null,
+        defaultTokens: BN
     },
     delegateAmount: {
         votes: BN,
@@ -65,6 +66,8 @@ export function useGetVoterWeight(
                 realmConfig.councilTokenConfig.voterWeightAddin :
                 realmConfig.communityTokenConfig.voterWeightAddin
 
+            const defaultTokens = tokenOwnerRecord ? tokenOwnerRecord.governingTokenDepositAmount : new BN(0)
+
             if (!voterWeightAddin || !registrar) {
                 console.log("fetched vanilla voter weights")
                 return {
@@ -76,7 +79,8 @@ export function useGetVoterWeight(
                                 isLocked: false
                             }],
                         isVsr: false,
-                        delegate: tokenOwnerRecord ? tokenOwnerRecord.governanceDelegate : null
+                        delegate: tokenOwnerRecord ? tokenOwnerRecord.governanceDelegate : null,
+                        defaultTokens
                     },
                     delegateAmount: {
                         votes: delegateRecords ? delegateRecords.reduce((a,b) => a.add(b.governingTokenDepositAmount), new BN(0)) : new BN(0),
@@ -95,6 +99,7 @@ export function useGetVoterWeight(
                         tokenOwnerRecord.governanceDelegate,
                         vsrClient,
                         registrar,
+                        defaultTokens
                     ) : 
                     {
                         votes: new BN(0),
@@ -103,7 +108,7 @@ export function useGetVoterWeight(
                             mint: new PublicKey(realmMeta.tokenMint),
                             isLocked: false
                         }],
-                        isVsr: true, delegate: null
+                        isVsr: true, delegate: null, defaultTokens
                     },
                 delegateAmount: delegateRecords ?
                     await getDelegateAmount(delegateRecords, vsrClient, registrar) :
@@ -124,7 +129,8 @@ async function getSelfAmount(
     authority: PublicKey, 
     delegate: PublicKey | null,
     client: Program<VoterStakeRegistry>,
-    registrar: Registrar
+    registrar: Registrar,
+    defaultTokens: BN
 ) {
     const [voterKey] = voterRecordKey(
         realm, 
@@ -146,7 +152,8 @@ async function getSelfAmount(
                 []
             ),
             isVsr: true,
-            delegate
+            delegate,
+            defaultTokens
         }
     } catch(e) {
         console.log(e)
@@ -158,7 +165,8 @@ async function getSelfAmount(
                 isLocked: false
             }],
             isVsr: true,
-            delegate: null
+            delegate: null,
+            defaultTokens
         }
     }
 }
