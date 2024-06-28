@@ -143,13 +143,14 @@ async function getSelfAmount(
         const deposits = (await client.account.voter.fetch(voterKey)).deposits
         return {
             votes: computeVsrWeight(deposits, registrar.data.votingMints),
-            tokens: deposits.flatMap(d => d.amountDepositedNative.gt(new BN(0)) ?
-                [{
-                    amount: d.amountDepositedNative,
-                    mint: registrar.data.votingMints[d.votingMintConfigIdx].mint,
-                    isLocked: d.lockup.kind.none === undefined
-                }] : 
-                []
+            tokens: deposits.flatMap(d => 
+                d.amountDepositedNative.gt(new BN(0)) && d.lockup.kind.none ?
+                    [{
+                        amount: d.amountDepositedNative,
+                        mint: registrar.data.votingMints[d.votingMintConfigIdx].mint,
+                        isLocked: d.lockup.kind.none === undefined
+                    }] : 
+                    []
             ),
             isVsr: true,
             delegate,
