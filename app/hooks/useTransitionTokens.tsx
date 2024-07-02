@@ -1,12 +1,13 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useGetRealmMeta } from "./useRealm";
-import { Governance } from "test-governance-sdk";
+import { Governance, TokenOwnerRecord } from "test-governance-sdk";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { VsrClient } from "../plugin/VoterStakeRegistry/client";
 import { useGetRegistrar } from "./useVsr";
 import transitionTokensHandler from "../actions/transitionTokens";
+import { VoteRecordWithGov } from "./useVoteRecord";
 
 export function useTransitionTokens(name: string) {
     const wallet = useWallet()
@@ -18,8 +19,8 @@ export function useTransitionTokens(name: string) {
     return useMutation({
       mutationKey: ["transition-tokens-mutation", {name, publicKey: wallet.publicKey}],
       mutationFn: async(
-          {amount}:
-          {amount: BN}
+          {amount, voteRecords, tokenOwnerRecord}:
+          {amount: BN, voteRecords: VoteRecordWithGov[], tokenOwnerRecord: TokenOwnerRecord}
       ): Promise<string | null> => {
 
         if (!selectedRealm || !wallet.publicKey || !registrar) {
@@ -39,7 +40,9 @@ export function useTransitionTokens(name: string) {
           publicKey,
           amount,
           registrar,
-          vsrClient
+          vsrClient,
+          voteRecords,
+          tokenOwnerRecord
         )
         return sig
       },

@@ -151,7 +151,11 @@ export function Add(
                             </span> :
                             "Add Tokens"
                         }                    
-                    style={{backgroundColor: tokensHolding.data && !addTokensPending ? realmMeta.mainColor : realmMeta.actionBackground }}
+                    style={{
+                        backgroundColor: tokensHolding.data && !addTokensPending && amount.length ?
+                            realmMeta.mainColor : 
+                            realmMeta.actionBackground 
+                        }}
                     vibrant={true}
                     disabled={
                         !tokensHolding.data || addTokensPending ? true : false

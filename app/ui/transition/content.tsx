@@ -6,11 +6,15 @@ import { ActiveButton } from "../buttons"
 import { useTransitionTokens } from "@/app/hooks/useTransitionTokens"
 import { useGetVoterWeight } from "@/app/hooks/useVoterWeight"
 import { useState } from "react"
+import { useGetVoteRecords } from "@/app/hooks/useVoteRecord"
+import { useGetTokenOwnerRecord } from "@/app/hooks/useVoterRecord"
 
 function TransitionContent({closeModal} : {closeModal: (b: boolean) => void}) {
   const realmMeta = useDaoMeta() as RealmMetaType
   const voterWeight = useGetVoterWeight(realmMeta.name).data
-  
+  const voteRecords = useGetVoteRecords(realmMeta.name).data
+  const tokenOwnerRecord = useGetTokenOwnerRecord(realmMeta.name).data
+
   const [errorMsg, setError] = useState("")
 
   const {
@@ -25,8 +29,25 @@ function TransitionContent({closeModal} : {closeModal: (b: boolean) => void}) {
       return
     }
 
+    if (!voteRecords) {
+      setError("Could not fetch the vote records. Try again.")
+      return
+    }
+
+    if (tokenOwnerRecord === undefined) {
+      setError("Failed to load token owner record. Try again.")
+      return
+    }
+
+    if (!tokenOwnerRecord) {
+        setError("The Token Owner Record does not exist.")
+        return
+    }
+
     await transitionTokensFn({
-      amount: voterWeight.selfAmount.defaultTokens
+      amount: voterWeight.selfAmount.defaultTokens,
+      tokenOwnerRecord,
+      voteRecords
     })
 
     closeModal(true)
