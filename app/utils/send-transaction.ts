@@ -56,7 +56,7 @@ async function sendTransaction(
         if (simulateResult.value.err) {
             const errObj = simulateResult.value.err as any
 
-            if (errObj.InstructionError[1].Custom !== 506) {
+            if (errObj.InstructionError && errObj.InstructionError[1].Custom !== 506) {
                 throw new Error(`Transaction simulation failed. Error: ${JSON.stringify(
                     simulateResult.value.err
                 )}`)
