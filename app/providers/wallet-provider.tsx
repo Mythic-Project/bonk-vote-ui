@@ -1,6 +1,7 @@
 'use client'
 
 import {ConnectionProvider, WalletProvider} from "@solana/wallet-adapter-react";
+import { SolflareWalletAdapter, PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { FC, ReactNode } from "react";
 import { useDaoMeta } from "./dao-provider";
 import dynamic from "next/dynamic";
@@ -20,7 +21,10 @@ export const WalletContextProvider: FC<{children: ReactNode}> = ({children}) => 
 
     return (
         <ConnectionProvider endpoint={endpoint}>
-            <WalletProvider wallets={[]} autoConnect={true}>
+            <WalletProvider wallets={[
+                new SolflareWalletAdapter(), 
+                new PhantomWalletAdapter()
+            ]} autoConnect={true}>
                 <WalletModalProviderDynamic>
                     {children}
                 </WalletModalProviderDynamic>
