@@ -17,10 +17,13 @@
         "primaryBackground": "#191919",
         "primaryBackgroundShade": "linear-gradient(to bottom, #2B3649, #000205)",
         "optionsBackground": "rgb(255,255,255,0.2)",
+        "optionsSequenceColor": "#2B2B2B",
         "secondaryBackground": "rgb(255,255,255,0.2)",
         "optionsSelected": "#4F4F4F",
         "optionsDark": "#151515",
-        "actionBackground": "rgb(255,255,255,0.2)"
+        "actionBackground": "rgb(255,255,255,0.2)",
+        "activateGradient": true,
+        "useShadeForWallet": true
     },
     {
         "name": "BONK",
@@ -39,9 +42,12 @@
         "primaryBackground": "#191919",
         "optionsBackground": "#343434",
         "secondaryBackground": "#262626",
+        "optionsSequenceColor": "#2B2B2B",
         "optionsSelected": "#4F4F4F",
         "optionsDark": "#151515",
-        "actionBackground": "#343434"
+        "actionBackground": "#343434",
+        "activateGradient": true,
+        "useShadeForWallet": true
     },
     {
         "name": "BONK_COUNCIL",
@@ -60,8 +66,37 @@
         "primaryBackground": "#191919",
         "optionsBackground": "#343434",
         "secondaryBackground": "#262626",
+        "optionsSequenceColor": "#2B2B2B",
         "optionsSelected": "#4F4F4F",
         "optionsDark": "#151515",
-        "actionBackground": "#343434"
+        "actionBackground": "#343434",
+        "activateGradient": true,
+        "useShadeForWallet": true
+    },
+    {
+        "name": "Exchange_Art",
+        "network": "devnet",
+        "realmId": "AvUmm9rKbA4xm4rYgdgJZgZUfX1q9pRSxnYD62G5Aisj",
+        "programId": "GovER5Lthms3bLBqWub97yVrMmEogzX7xNjdXpPPCVZw",
+        "tokenMint": "5g92mm4Stiez2t4MUYfJviau4FMZzwyp6Lwx5zM4Bvph",
+        "tokenType": "council",
+        "banner": "/image/exchange_art.png",
+        "mainColor": "#6172F3",
+        "secondaryColor": "#494B53",
+        "thirdColor": "#ab2d08",
+        "tickColor": "#FFFFFF",
+        "gradientOne": "#181A20",
+        "gradientTwo": "#000000",
+        "primaryBackground": "#23252A",
+        "optionsBackground": "#2F3136",
+        "secondaryBackground": "#373940",
+        "mainBackgroundImg": "/image/exchange-art-logo.png",
+        "specialBackgroundImg" : "/image/exchange-art-special.png",
+        "optionsSelected": "#494B53",
+        "optionsSequenceColor": "#4F565F",
+        "optionsDark": "#2F3136",
+        "actionBackground": "#373940",
+        "activateGradient": false,
+        "useShadeForWallet": false
     }
 ]

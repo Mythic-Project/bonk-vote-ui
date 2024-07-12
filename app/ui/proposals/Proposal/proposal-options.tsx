@@ -73,7 +73,9 @@ function OptionDisplay(
         <li className={`w-full relative border-[1px] my-4 rounded-md text-primary-text text-sm`}
             onClick={handleOptionClick}
             style={{
-                borderColor: optionSelected ? realmMeta.mainColor : realmMeta.optionsSelected,
+                borderColor: optionSelected || option.votes.gt(new BN(0)) ? 
+                    realmMeta.mainColor : 
+                    realmMeta.optionsSelected,
                 backgroundColor: optionSelected ? realmMeta.optionsSelected :
                     isVotingOver ? realmMeta.optionsDark :
                     realmMeta.optionsBackground
@@ -90,7 +92,9 @@ function OptionDisplay(
             <div className={`relative z-2 w-full flex gap-2 items-center p-3 ${!isVotingOver && "cursor-pointer"}`}>
                 <span className={`py-[6px] px-[10px] mr-3 border-[1px]`}
                     style={{
-                        backgroundColor: optionSelected && isVoting ? realmMeta.mainColor : realmMeta.primaryBackground,
+                        backgroundColor: (optionSelected || option.votes.gt(new BN(0))) && isVoting ? 
+                            realmMeta.mainColor : 
+                            realmMeta.optionsSequenceColor,
                         borderColor: realmMeta.optionsSelected
                     }}
                 >

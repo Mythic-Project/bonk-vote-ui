@@ -19,13 +19,17 @@ export interface RealmMetaType {
     gradientOne: string,
     gradientTwo: string,
     mainBackgroundImg?: string,
+    specialBackgroundImg?: string,
     primaryBackground: string,
     primaryBackgroundShade?: string,
     optionsBackground: string,
     secondaryBackground: string,
     optionsSelected: string,
+    optionsSequenceColor: string,
     optionsDark: string,
-    actionBackground: string
+    actionBackground: string,
+    activateGradient: boolean,
+    useShadeForWallet: boolean
 }
 
 export function useGetRealmMeta(name: string) {

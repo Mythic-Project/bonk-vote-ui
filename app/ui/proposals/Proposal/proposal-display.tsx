@@ -150,8 +150,8 @@ export function ProposalDisplay(
                     disabled={(!denyVote && votes.length === 0) && !allVotesCasted}
                     vibrant={true}
                     style={{
-                        backgroundColor: denyVote || votes.length && isVoting && !allVotesCasted ? 
-                            realmMeta.mainColor: 
+                        backgroundColor: (denyVote || votes.length) && isVoting && !allVotesCasted ? 
+                            realmMeta.mainColor :
                             realmMeta.actionBackground
                         }}
                     onClick={() => setIsOpen(true)}

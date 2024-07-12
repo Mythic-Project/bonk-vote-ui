@@ -43,7 +43,7 @@ function CommentUI(
                     <ProfileImage 
                         image={civicProfile.data?.image?.url} 
                         fallbackAddress={msg.author}
-                        backgroundColor={realmMeta.actionBackground}
+                        backgroundColor={realmMeta.optionsBackground}
                     />
                     <Link
                         href={getLink(msg.author.toBase58(), "account", network)}
