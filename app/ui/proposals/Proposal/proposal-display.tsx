@@ -124,7 +124,7 @@ export function ProposalDisplay(
             style={{background: realmMeta.primaryBackgroundShade ?? realmMeta.primaryBackground}}
         >
             <ProposalMeta proposal={proposal} governance={governance}/>
-            <h1 className="text-lg font-semibold flex items-center gap-2 justify-between text-primary-text mt-4 mb-2 mr-4">
+            <h1 className="text-lg font-semibold flex items-center gap-2 justify-between text-primary-text mt-4 mb-2 mr-4 break-all">
                 {proposal.name}
                 <RealmsLink proposal={proposal.publicKey} realm={governance.realm} network={network} />
             </h1>
