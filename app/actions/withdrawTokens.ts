@@ -38,7 +38,7 @@ export async function withdrawTokensHandler(
             voteRecord.governance,
             voteRecord.proposal,
             tokenOwnerRecord.publicKey,
-            tokenMint,
+            depositMint,
             userAccount,
             userAccount
         )
