@@ -14,6 +14,10 @@ import { useGetVoteRecords } from "@/app/hooks/useVoteRecord";
 import { PublicKey } from "@solana/web3.js";
 import AddTokensList from "./add-tokens-list";
 import WithdrawFinalize from "./withdraw-finalize";
+import { useClaimSol } from "@/app/hooks/useClaimSol";
+import { useGetTokenOwnerRecord } from "@/app/hooks/useVoterRecord";
+import Link from "next/link";
+import { getLink } from "@/app/utils/ui-utils";
 
 export function Withdraw(
     {closeModal, voterWeight}:
@@ -29,6 +33,16 @@ export function Withdraw(
     const realmMeta = useDaoMeta() as RealmMetaType
     const daoMintInfo = useGetDaoMintData(realmMeta.name).data
     const voteRecords = useGetVoteRecords(realmMeta.name).data
+
+    const tokenOwnerRecord = useGetTokenOwnerRecord(realmMeta.name).data
+
+    const {
+        mutateAsync: claimSolFn,
+        isError: claimSolFailed,
+        error: claimSolError,
+        isPending: claimSolPending,
+        data: claimSolData
+    } = useClaimSol(realmMeta.name)
 
     const withdrawableAmount = useMemo(() => {
         return voterWeight.data ?
@@ -94,6 +108,31 @@ export function Withdraw(
         setFinalAmount(baseAmount)
         setWithdrawPage(2)
     }
+
+    function claimRent() {
+        setError("")
+
+        if (claimSolPending) {
+            return
+        }
+
+        if (!voterWeight.data || !daoMintInfo || !voteRecords) return
+
+        if (tokenOwnerRecord === undefined) {
+            setError("Failed to load token owner record. Try again.")
+            return
+        }
+
+        if (!tokenOwnerRecord) {
+            setError("The Token Owner Record does not exist.")
+            return
+        }
+
+        claimSolFn({
+            tokenOwnerRecord,
+            voteRecords
+        })
+    }
     
     return (
         withdrawPage === 1 ?
@@ -120,6 +159,14 @@ export function Withdraw(
                         })))
                     }/>
                 }
+
+                <div 
+                    className="w-full text-right mb-4 cursor-pointer text-xs"
+                    style={{color: realmMeta.mainColor}}
+                    onClick={claimRent}
+                >
+                    {claimSolPending ? "Claiming.." : "Claim SOL Rent"}
+                </div>
 
                 <hr className="border-[1px]w-full mb-6" style={{borderColor: realmMeta.secondaryBackground}} />
                 
@@ -162,10 +209,23 @@ export function Withdraw(
                     <StandardButton title="Cancel" onClick={closeModal}/>
                 </div>
 
-                <div className="text-red-400 text-sm mt-4">
-                    {errorMsg}
-                    {/* {addTokensFailed && "Token deposit failed"} */}
-                </div>
+                {(errorMsg || claimSolFailed) &&
+                    <div className="text-red-400 text-sm mt-4">
+                        {errorMsg} 
+                        {claimSolFailed && claimSolError.message }
+                    </div>
+                }
+                
+                {claimSolData &&
+                    <div className="text-sm mt-4">
+                        The SOL has been successfully claimed. <Link
+                            href={getLink(claimSolData, 'tx', realmMeta.network)} 
+                            className="text-secondary-text"
+                        >
+                            View transaction
+                        </Link>
+                    </div>
+                }
             </div> :
         withdrawPage === 2 ?
             <ConfirmWithdraw 

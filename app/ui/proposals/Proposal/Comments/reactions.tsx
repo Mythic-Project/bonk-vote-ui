@@ -114,7 +114,7 @@ function CastedReactionsUI(
     })
 
     return (
-        <div>
+        <div className="h-80">
             <div className="flex gap-8 justify-between">
                 {symbols.map((symbol, index) => (
                     <div 
