@@ -38,7 +38,7 @@ export async function withdrawTokensHandler(
             voteRecord.governance,
             voteRecord.proposal,
             tokenOwnerRecord.publicKey,
-            depositMint,
+            tokenMint,
             userAccount,
             userAccount
         )
@@ -54,7 +54,7 @@ export async function withdrawTokensHandler(
             userAccount,
             userAta,
             userAccount,
-            tokenMint
+            depositMint
         )
 
         ixs.push(createAtaIx)
