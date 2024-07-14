@@ -32,7 +32,7 @@ export function ProposalMeta(
 
     let state = Object.keys(proposal.state)[0]
 
-    state = Date.now() > endTimeWithCoolOff && state === "voting" ?
+    state = Date.now() > votingEndTime && state === "voting" ?
         "Finalizing" : state
 
     return (
