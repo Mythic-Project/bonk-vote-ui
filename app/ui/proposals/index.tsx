@@ -65,7 +65,16 @@ export function Proposals() {
                                     network={daoMeta!.network}
                                 />
                             )) :
-                            "No Active Proposals"
+                            <div className="w-full flex flex-col items-center gap-2">
+                                <div className="rounded-full w-16 p-4"
+                                   style={{backgroundColor: daoMeta?.primaryBackground}}
+                                >
+                                    <img src="image/no-prop.png"
+                                        className="w-14"
+                                    />
+                                </div>
+                                <p className="text-secondary-text text-sm">No Active Proposals</p>
+                            </div>
                         }
                         {
                             showLoadButton && 
