@@ -20,6 +20,8 @@ import { Comments } from "./Comments/index"
 import { Reactions } from "./Comments/reactions"
 import { commentsCount } from "@/app/utils/ui-utils"
 import { TransactionWarning } from "./transaction-warning"
+import ReactMarkdown from 'react-markdown'
+import { useGetProposalBody } from "@/app/hooks/useProposalBody"
 
 export interface OptionWithVote extends ProposalOption {
     votes: BN
@@ -45,6 +47,7 @@ export function ProposalDisplay(
     const voteRecords = useGetVoteRecordsForProposal(realmMeta.name, proposal.publicKey).data
     const tokenOwnerRecord = useGetTokenOwnerRecord(realmMeta.name).data
     const delegateRecords = useGetDelegateRecords(realmMeta.name).data
+    const proposalBody = useGetProposalBody(proposal.publicKey.toBase58(), proposal.descriptionLink).data
 
     const [modalIsOpen, setIsOpen] = useState(false)
     const [votes, setVotes] = useState<number[]>([])
@@ -129,7 +132,11 @@ export function ProposalDisplay(
                 <RealmsLink proposal={proposal.publicKey} realm={governance.realm} network={network} />
             </h1>
             {proposal.descriptionLink.length > 0 && <div className="text-sm text-secondary-text mb-4 break-all">
-                {proposal.descriptionLink}
+                <ReactMarkdown
+                    className="markdown"
+                >
+                    {proposalBody ?? proposal.descriptionLink}
+                </ReactMarkdown>
             </div>}
             <TransactionWarning proposal={proposal} />
             <hr className="border-1" style={{borderColor: realmMeta.secondaryBackground}} />
