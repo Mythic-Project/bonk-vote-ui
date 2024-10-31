@@ -4,10 +4,10 @@ import { TokenOwnerRecord } from "test-governance-sdk";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { VsrClient } from "../plugin/VoterStakeRegistry/client";
 import { useGetRegistrar } from "./useVsr";
 import { VoteRecordWithGov } from "./useVoteRecord";
 import { claimSolHandler } from "../actions/claimSol";
+import { BonkPluginClient } from "../plugin/BonkPlugin/client";
 
 export function useClaimSol(name: string) {
     const wallet = useWallet()
@@ -27,13 +27,13 @@ export function useClaimSol(name: string) {
                 tokenOwnerRecord: TokenOwnerRecord, 
                 voteRecords: VoteRecordWithGov[],
             }
-        ): Promise<string | null> => {
+        ) => {
 
             if (!selectedRealm || !wallet.publicKey || registrar === undefined) {
                 throw new Error("Withdrawal failed! Try again.")
             }
 
-            const vsrClient = registrar === null ? undefined : VsrClient(connection, registrar.programId)
+            const vsrClient = registrar === null ? undefined : BonkPluginClient(connection, registrar.programId)
             const publicKey = wallet.publicKey
 
             const sig = await claimSolHandler(
@@ -44,11 +44,11 @@ export function useClaimSol(name: string) {
                 publicKey,
                 tokenOwnerRecord,
                 voteRecords,
-                registrar,
-                vsrClient
+                // registrar,
+                // vsrClient
             )
 
-            return sig
+            // return sig
         },
         onSuccess: async() => {
             client.resetQueries({

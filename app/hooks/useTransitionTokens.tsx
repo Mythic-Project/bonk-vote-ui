@@ -4,10 +4,10 @@ import { Governance, TokenOwnerRecord } from "test-governance-sdk";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { VsrClient } from "../plugin/VoterStakeRegistry/client";
 import { useGetRegistrar } from "./useVsr";
 import transitionTokensHandler from "../actions/transitionTokens";
 import { VoteRecordWithGov } from "./useVoteRecord";
+import { BonkPluginClient } from "../plugin/BonkPlugin/client";
 
 export function useTransitionTokens(name: string) {
     const wallet = useWallet()
@@ -21,14 +21,14 @@ export function useTransitionTokens(name: string) {
       mutationFn: async(
           {amount, voteRecords, tokenOwnerRecord}:
           {amount: BN, voteRecords: VoteRecordWithGov[], tokenOwnerRecord: TokenOwnerRecord}
-      ): Promise<string | null> => {
+      ) => {
 
         if (!selectedRealm || !wallet.publicKey || !registrar) {
             return null
         }
     
         const govClient = new Governance(connection, new PublicKey(selectedRealm.programId))
-        const vsrClient = VsrClient(connection, registrar.programId)
+        const vsrClient = BonkPluginClient(connection, registrar.programId)
         const publicKey = wallet.publicKey
         
         const sig = await transitionTokensHandler(
@@ -39,12 +39,12 @@ export function useTransitionTokens(name: string) {
           new PublicKey(selectedRealm.tokenMint),
           publicKey,
           amount,
-          registrar,
-          vsrClient,
+          // registrar,
+          // vsrClient,
           voteRecords,
           tokenOwnerRecord
         )
-        return sig
+        // return sig
       },
       onSuccess: async() => {
         client.resetQueries({
