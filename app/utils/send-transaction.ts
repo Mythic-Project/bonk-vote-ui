@@ -7,7 +7,8 @@ async function sendTransaction(
     instructions: TransactionInstruction[],
     wallet: WalletContextState,
     chunks?: number,
-    signers?: Keypair
+    signers?: Keypair,
+    useDefaultCULimit?: boolean
 ) {
     if (!wallet.publicKey) {
         throw new Error("The wallet is not connected.")
@@ -56,7 +57,11 @@ async function sendTransaction(
         if (simulateResult.value.err) {
             const errObj = simulateResult.value.err as any
 
-            if (errObj.InstructionError && errObj.InstructionError[1].Custom !== 506) {
+            if (errObj.InstructionError && errObj.InstructionError[1].Custom !== 506 && 
+                errObj.InstructionError && errObj.InstructionError[1].Custom !== 1101
+            ) {
+                console.log(simulateResult.value.accounts)
+                console.log(simulateResult.value.logs)
                 throw new Error(`Transaction simulation failed. Error: ${JSON.stringify(
                     simulateResult.value.err
                 )}`)
@@ -68,7 +73,7 @@ async function sendTransaction(
         if (CU_UNITS) {
             ixs.unshift(
                 ComputeBudgetProgram.setComputeUnitLimit({
-                    units: CU_UNITS * 1.2,
+                    units: useDefaultCULimit ? 200_000 : CU_UNITS * 1.2,
                 })
             )
         }
@@ -116,7 +121,7 @@ async function sendTransaction(
             console.log(`${new Date().toISOString()} Sending Transaction ${txSignature}`);
     
             await connection.sendRawTransaction(signedTx.serialize(), {
-                skipPreflight: true,
+                skipPreflight: false,
                 maxRetries: 0,
             });
         
@@ -138,7 +143,7 @@ async function sendTransaction(
                 console.log(`${new Date().toISOString()} Tx not confirmed after ${3000 * txSendAttempts++}ms, resending`);
         
                 await connection.sendRawTransaction(signedTx.serialize(), {
-                    skipPreflight: true,
+                    skipPreflight: false,
                     maxRetries: 0,
                 });
             }

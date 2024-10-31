@@ -36,11 +36,11 @@ export function useGetTokensHolding(name: string) {
             }
             
             const mintsForRegistrar = registrar ? 
-                registrar.data.votingMints.filter(v => !v.baselineVoteWeightScaledFactor.eq(new BN(0))) :
+                registrar.data.governingTokenMint :
                 null
             
             const mints = mintsForRegistrar ?
-                mintsForRegistrar.map(v => v.mint) :
+                [mintsForRegistrar] :
                 [new PublicKey(selectedRealm.tokenMint)]
             
             if (mints.length === 0) {

@@ -6,7 +6,6 @@ import VoterWeight from "./voter-weight"
 import Modal from "react-modal"
 import { ActiveButton, StandardButton } from "../../buttons";
 import { ActionsModal } from "./ActionsModal";
-import { useGetVoterWeight } from "@/app/hooks/useVoterWeight";
 import { useDaoMeta } from "@/app/providers/dao-provider";
 import { RealmMetaType } from "@/app/hooks/useRealm";
 import { useGetTokensHolding } from "@/app/hooks/useToken";
@@ -14,7 +13,6 @@ import { BN } from "bn.js";
 
 function VoterPanel() {
     const realmMeta = useDaoMeta() as RealmMetaType
-    const voterWeight = useGetVoterWeight(realmMeta.name)
     const [modalIsOpen, setIsOpen] = useState(false);
 
     const tokensHoldings = useGetTokensHolding(realmMeta.name)
@@ -62,7 +60,6 @@ function VoterPanel() {
                     closeModal={() => setIsOpen(false)} 
                     action={selectedAction} 
                     setAction={setSelectedAction}
-                    voterWeight={voterWeight}
                 />
             </Modal>
         </div>

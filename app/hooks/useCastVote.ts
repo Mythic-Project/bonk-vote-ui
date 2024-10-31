@@ -1,12 +1,13 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useGetRealmMeta } from "./useRealm";
-import { Governance, ProposalV2, TokenOwnerRecord } from "test-governance-sdk";
+import { Governance, ProposalV2 } from "test-governance-sdk";
 import { PublicKey } from "@solana/web3.js";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { castVoteHandler } from "../actions/castVote";
 import { relinquishVotesHandler } from "../actions/relinquishVote";
 import { useGetRegistrar } from "./useVsr";
-import { VsrClient } from "../plugin/VoterStakeRegistry/client";
+import { BonkPluginClient } from "../plugin/BonkPlugin/client";
+import { TokenOwnerRecordWithPluginData } from "./useVoterRecord";
 
 export function useCastVote(name: string) {
     const wallet = useWallet()
@@ -23,8 +24,8 @@ export function useCastVote(name: string) {
                 proposal: ProposalV2,
                 votes: number[],
                 denyVote: boolean,
-                tokenOwnerRecord: TokenOwnerRecord | null | undefined,
-                delegateRecords: TokenOwnerRecord[] | null | undefined,
+                tokenOwnerRecord: TokenOwnerRecordWithPluginData | null | undefined,
+                delegateRecords: TokenOwnerRecordWithPluginData[] | null | undefined,
                 removeVotes: boolean, // Passed if wants to remove votes
                 message?: string,
             }
@@ -37,7 +38,7 @@ export function useCastVote(name: string) {
             }
         
             const govClient = new Governance(connection, new PublicKey(selectedRealm.programId))
-            const vsrClient = registrar === null ? undefined : VsrClient(connection, registrar.programId)
+            const bonkClient = registrar === null ? undefined : BonkPluginClient(connection, registrar.programId)
 
             const realm = new PublicKey(selectedRealm.realmId)
             const tokenMint = new PublicKey(selectedRealm.tokenMint)
@@ -54,7 +55,7 @@ export function useCastVote(name: string) {
                     delegateRecords,
                     proposal,
                     message,
-                    vsrClient
+                    bonkClient
                 ) :
                 await castVoteHandler(
                     connection,
@@ -69,7 +70,7 @@ export function useCastVote(name: string) {
                     votes,
                     denyVote,
                     message,
-                    vsrClient
+                    bonkClient
                 )
 
             return result

@@ -1,11 +1,13 @@
 import { Program } from "@coral-xyz/anchor";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { Connection, Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { Governance, ProposalV2, TokenOwnerRecord, VoteRecord } from "test-governance-sdk";
-import { VoterStakeRegistry } from "../plugin/VoterStakeRegistry/idl";
+import { Governance, ProposalV2 } from "test-governance-sdk";
 import sendTransaction from "../utils/send-transaction";
 import BN from "bn.js"
-import { registrarKey, voterRecordKey, vsrRecordKey } from "../plugin/VoterStakeRegistry/utils";
+import { bonkVwrKey, registrarKey } from "../plugin/BonkPlugin/utils";
+import { BonkPlugin } from "../plugin/BonkPlugin/type";
+import { DEFAULT_TOKEN_VOTER_PROGRAM_ID, tokenVwrKey } from "../plugin/TokenVoter/utils";
+import { TokenOwnerRecordWithPluginData } from "../hooks/useVoterRecord";
 
 export async function relinquishVotesHandler(
     connection: Connection,
@@ -14,11 +16,11 @@ export async function relinquishVotesHandler(
     realmAccount: PublicKey,
     tokenMint: PublicKey,
     userAccount: PublicKey,
-    tokenOwnerRecord: TokenOwnerRecord | null,
-    delegateRecords: TokenOwnerRecord[] | null,
+    tokenOwnerRecord: TokenOwnerRecordWithPluginData | null,
+    delegateRecords: TokenOwnerRecordWithPluginData[] | null,
     proposal: ProposalV2,
     message?: string,
-    vsrClient?: Program<VoterStakeRegistry> | undefined
+    bonkClient?: Program<BonkPlugin> | undefined
 ) {
     const ixs: TransactionInstruction[] = []
     let weight = new BN(0)
@@ -58,24 +60,42 @@ export async function relinquishVotesHandler(
         delegateRecords![0]
 
     if (message) {
-        const vwrKey = vsrClient ? 
-            vsrRecordKey(realmAccount, tokenMint, chatTor.governingTokenOwner, vsrClient.programId)[0] :
-            undefined
+        let vwrKey: PublicKey | undefined = undefined
 
-        if (vwrKey && vsrClient) {
-            const registrar = vsrClient ? registrarKey(realmAccount, tokenMint, vsrClient.programId) : undefined
-            const [voterKey] = voterRecordKey(realmAccount, tokenMint, chatTor.governingTokenOwner, vsrClient.programId)
-    
-            const updateVoterRecordIx = await vsrClient.methods.updateVoterWeightRecord()
+        if (bonkClient) {
+            vwrKey = bonkVwrKey(realmAccount, tokenMint, chatTor.governingTokenOwner, bonkClient.programId)[0]
+            const inputVoterWeight = tokenVwrKey(realmAccount, tokenMint, userAccount, DEFAULT_TOKEN_VOTER_PROGRAM_ID)[0]
+            const registrar = registrarKey(realmAccount, tokenMint, bonkClient.programId)
+
+            const sdrs = chatTor.stakeDepositReceipts?.map(sdr => (
+                {
+                    pubkey: sdr.publicKey,
+                    isSigner: false,
+                    isWritable: false
+                }
+            ))
+
+            const updateVoterRecordIx = await bonkClient.methods.updateVoterWeightRecord(
+                sdrs?.length ?? 0,
+                proposal.publicKey,
+                {castVote: {}}
+            )
                 .accounts({
                     registrar,
-                    voter: voterKey,
-                    voterWeightRecord: vwrKey
-                }).instruction()
+                    voterWeightRecord: vwrKey,
+                    inputVoterWeight,
+                    governance: proposal.governance,
+                    voterTokenOwnerRecord: chatTor.publicKey,
+                    voterAuthority: userAccount,
+                    proposal: proposal.publicKey,
+                    payer: userAccount
+                })
+                .remainingAccounts(sdrs ?? [])
+                .instruction()
             
             ixs.push(updateVoterRecordIx)
         }
-
+        
         const chatMessageIx = await govClient.postMessageInstruction(
             message,
             "text",

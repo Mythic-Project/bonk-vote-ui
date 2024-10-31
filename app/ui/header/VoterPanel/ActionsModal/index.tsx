@@ -7,14 +7,12 @@ import { Delegate } from "./delegate";
 import { useGetTokensHolding } from "@/app/hooks/useToken";
 import { RealmMetaType } from "@/app/hooks/useRealm";
 import { useDaoMeta } from "@/app/providers/dao-provider";
-import { VoterWeightType } from "@/app/hooks/useVoterWeight";
 import { UseQueryResult } from "@tanstack/react-query";
 
 type ActionsModalProps = {
     closeModal: () => void, 
     action: number, 
     setAction: (action: number) => void,
-    voterWeight: UseQueryResult<VoterWeightType | null, Error>
 }
 
 export function ActionsModal(
@@ -22,7 +20,6 @@ export function ActionsModal(
         closeModal, 
         action, 
         setAction,
-        voterWeight
     }:
     ActionsModalProps
 ) {
@@ -42,9 +39,9 @@ export function ActionsModal(
                 action === 1 ?
                     <Add closeModal={closeModal} tokensHolding={tokensHolding}/> :
                 action === 2 ?
-                    <Withdraw closeModal={closeModal} voterWeight={voterWeight}/> :
+                    <Withdraw closeModal={closeModal} /> :
                 action === 3 ?
-                    <Delegate closeModal={closeModal} voterWeight={voterWeight}/> :
+                    <Delegate closeModal={closeModal} /> :
                     ""
            }
         </div>

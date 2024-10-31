@@ -2,7 +2,6 @@
 
 import { useGetDaoMintData } from "@/app/hooks/useMint";
 import { RealmMetaType } from "@/app/hooks/useRealm";
-import { VoterWeightType } from "@/app/hooks/useVoterWeight";
 import { useDaoMeta } from "@/app/providers/dao-provider";
 import { StandardButton } from "@/app/ui/buttons";
 import { UseQueryResult } from "@tanstack/react-query";
@@ -20,8 +19,8 @@ import Link from "next/link";
 import { getLink } from "@/app/utils/ui-utils";
 
 export function Withdraw(
-    {closeModal, voterWeight}:
-    {closeModal: () => void, voterWeight: UseQueryResult<VoterWeightType | null, Error>}
+    {closeModal}:
+    {closeModal: () => void}
 ) {
     // 1 for Withdraw Form, 2 for Withdrawal confirmation, 3 for Withdrawal Finalisation
     const [withdrawPage, setWithdrawPage] = useState<1 | 2 | 3>(1)
@@ -34,58 +33,57 @@ export function Withdraw(
     const daoMintInfo = useGetDaoMintData(realmMeta.name).data
     const voteRecords = useGetVoteRecords(realmMeta.name).data
 
-    const tokenOwnerRecord = useGetTokenOwnerRecord(realmMeta.name).data
+    const tokenOwnerRecord = useGetTokenOwnerRecord(realmMeta.name)
 
-    const {
-        mutateAsync: claimSolFn,
-        isError: claimSolFailed,
-        error: claimSolError,
-        isPending: claimSolPending,
-        data: claimSolData
-    } = useClaimSol(realmMeta.name)
+    // const {
+    //     mutateAsync: claimSolFn,
+    //     isError: claimSolFailed,
+    //     error: claimSolError,
+    //     isPending: claimSolPending,
+    //     data: claimSolData
+    // } = useClaimSol(realmMeta.name)
 
     const withdrawableAmount = useMemo(() => {
-        return voterWeight.data ?
-        calculateWithdrawableBalance(voterWeight.data.selfAmount.tokens) :
-        [{amount: new BN(0), mint: new PublicKey(realmMeta.tokenMint)}]
-    }, [voterWeight.data, realmMeta.tokenMint])
+        return tokenOwnerRecord.data?.tokenVoter ?
+            tokenOwnerRecord.data.tokenVoter.voterWeight :
+            new BN(0)
+    }, [tokenOwnerRecord])
 
-    useEffect(() => {
-        if (!daoMintInfo || !withdrawableAmount.length) return
+    // useEffect(() => {
+    //     if (!daoMintInfo || !withdrawableAmount.length) return
 
-        const el = withdrawableAmount[selectedMint]
+    //     const el = withdrawableAmount[selectedMint]
 
-        if (el) {
-            const amt = calculateBalance(
-                el.amount,
-                daoMintInfo.find(d => d.address.equals(el.mint))!.decimals
-            )
+    //     if (el) {
+    //         const amt = calculateBalance(
+    //             el.amount,
+    //             daoMintInfo.find(d => d.address.equals(el.mint))!.decimals
+    //         )
     
-            setAmount(amt)
-        }
+    //         setAmount(amt)
+    //     }
         
-    }, [daoMintInfo, selectedMint, withdrawableAmount])
+    // }, [daoMintInfo, selectedMint, withdrawableAmount])
 
     function setMax() {
-        if (!voterWeight.data || !daoMintInfo) return
+        if (!tokenOwnerRecord.data || !daoMintInfo) return
 
         const amt = calculateBalance(
-            withdrawableAmount[selectedMint].amount,
-            daoMintInfo.find(m => m.address.equals(withdrawableAmount[selectedMint].mint))!.decimals
+            withdrawableAmount,
+            daoMintInfo[0].decimals
         )
-        
         setAmount(amt)
     }
 
     function handleSubmit() {
         setError("")
 
-        if (!voterWeight.data || !daoMintInfo || !voteRecords) {
+        if (!tokenOwnerRecord.data || !daoMintInfo || !voteRecords) {
             setError("Unable to retrieve token holdings and mint details, try again.")
             return
         }
 
-        const decimals = daoMintInfo.find(m => m.address.equals(withdrawableAmount[selectedMint].mint))!.decimals
+        const decimals = daoMintInfo[0].decimals
         const [base, deci] = amount.split(".")
         const pow = new BN(10).pow(new BN(decimals))
         let baseAmount = new BN(base).mul(pow)
@@ -100,7 +98,7 @@ export function Withdraw(
             return
         }
 
-        if (baseAmount.gt(withdrawableAmount[selectedMint].amount)) {
+        if (baseAmount.gt(withdrawableAmount)) {
             setError("Insufficient tokens. Try with lower amount.")
             return
         }
@@ -109,30 +107,30 @@ export function Withdraw(
         setWithdrawPage(2)
     }
 
-    function claimRent() {
-        setError("")
+    // function claimRent() {
+    //     setError("")
 
-        if (claimSolPending) {
-            return
-        }
+    //     if (claimSolPending) {
+    //         return
+    //     }
 
-        if (!voterWeight.data || !daoMintInfo || !voteRecords) return
+    //     if (!voterWeight.data || !daoMintInfo || !voteRecords) return
 
-        if (tokenOwnerRecord === undefined) {
-            setError("Failed to load token owner record. Try again.")
-            return
-        }
+    //     if (tokenOwnerRecord === undefined) {
+    //         setError("Failed to load token owner record. Try again.")
+    //         return
+    //     }
 
-        if (!tokenOwnerRecord) {
-            setError("The Token Owner Record does not exist.")
-            return
-        }
+    //     if (!tokenOwnerRecord) {
+    //         setError("The Token Owner Record does not exist.")
+    //         return
+    //     }
 
-        claimSolFn({
-            tokenOwnerRecord,
-            voteRecords
-        })
-    }
+    //     claimSolFn({
+    //         tokenOwnerRecord,
+    //         voteRecords
+    //     })
+    // }
     
     return (
         withdrawPage === 1 ?
@@ -145,35 +143,12 @@ export function Withdraw(
                     If you remove your tokens your votes on active proposals will be removed
                 </p>
 
-                {
-                    voterWeight.data && daoMintInfo && withdrawableAmount.length > 1 &&
-                    <AddTokensList 
-                        setSelectedToken={setSelectedMint} 
-                        selectedToken={selectedMint}
-                        tokensHolding={
-                            withdrawableAmount.map((w => ({
-                                balance: w.amount.toString(),
-                                mint: w.mint,
-                                account: PublicKey.default,
-                                decimals: daoMintInfo.find(m => m.address.equals(w.mint))!.decimals
-                        })))
-                    }/>
-                }
-
-                <div 
-                    className="w-full text-right mb-4 cursor-pointer text-xs"
-                    style={{color: realmMeta.mainColor}}
-                    onClick={claimRent}
-                >
-                    {claimSolPending ? "Claiming.." : "Claim SOL Rent"}
-                </div>
-
                 <hr className="border-[1px]w-full mb-6" style={{borderColor: realmMeta.secondaryBackground}} />
                 
                 <input type="number" placeholder={"0"} className="
                     placeholder:text-placeholder-shade w-full p-3 rounded-lg z-20 
                     border-[1px] mb-2"
-                    disabled={voterWeight.data? false : true}
+                    disabled={tokenOwnerRecord ? false : true}
                     style={{backgroundColor: realmMeta.secondaryBackground, borderColor: realmMeta.optionsSelected }}
                     onChange={(e) => setAmount(e.target.value)}
                     value={amount}
@@ -182,12 +157,12 @@ export function Withdraw(
                 <div className="flex gap-2 text-xs text-secondary-text w-full mb-6">
                     <h4 className="flex gap-1">
                         Balance: {
-                            voterWeight.isFetching ?
+                            tokenOwnerRecord.isFetching ?
                                 <div>Loading..</div> :
-                            voterWeight.data && daoMintInfo && withdrawableAmount.length ? 
+                            tokenOwnerRecord.data && daoMintInfo && withdrawableAmount.gt(new BN(0)) ? 
                                 <Balance holding={{
-                                    balance: withdrawableAmount[selectedMint].amount.toString(),
-                                    decimals: daoMintInfo.find(m => m.address.equals(withdrawableAmount[selectedMint].mint))!.decimals
+                                    balance: withdrawableAmount.toString(),
+                                    decimals: daoMintInfo[0].decimals
                                 }} /> : 
                                 "Loading.."
                         }
@@ -198,44 +173,24 @@ export function Withdraw(
                     <StandardButton 
                         title="Withdraw Tokens" 
                         style={{
-                            backgroundColor: withdrawableAmount.length && !withdrawableAmount[selectedMint].amount.isZero() ? 
+                            backgroundColor: withdrawableAmount.gt(new BN(0)) ? 
                                 realmMeta.mainColor :
                                 realmMeta.actionBackground
                             }}
                         vibrant={true}
-                        disabled={!voterWeight.data || !withdrawableAmount.length}
+                        disabled={!tokenOwnerRecord.data || !withdrawableAmount.gt(new BN(0))}
                         onClick={handleSubmit}
                     />
                     <StandardButton title="Cancel" onClick={closeModal}/>
                 </div>
-
-                {(errorMsg || claimSolFailed) &&
-                    <div className="text-red-400 text-sm mt-4">
-                        {errorMsg} 
-                        {claimSolFailed && claimSolError.message }
-                    </div>
-                }
-                
-                {claimSolData &&
-                    <div className="text-sm mt-4">
-                        The SOL has been successfully claimed. <Link
-                            href={getLink(claimSolData, 'tx', realmMeta.network)} 
-                            className="text-secondary-text"
-                        >
-                            View transaction
-                        </Link>
-                    </div>
-                }
             </div> :
         withdrawPage === 2 ?
             <ConfirmWithdraw 
                 closeModal={closeModal} 
                 amount={finalAmount} 
                 voteRecords={voteRecords!}
-                voterWeight={voterWeight.data!}
                 setAmount={setAmount}
                 setWithdrawPage={setWithdrawPage}
-                selectedMint={withdrawableAmount[selectedMint] ? withdrawableAmount[selectedMint].mint : PublicKey.default}
             /> :
         withdrawPage === 3 ?
             <WithdrawFinalize 

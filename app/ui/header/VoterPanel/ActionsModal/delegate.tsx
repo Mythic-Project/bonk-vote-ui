@@ -3,7 +3,6 @@
 import { useDelegateTokens } from "@/app/hooks/useDelegateTokens";
 import { RealmMetaType } from "@/app/hooks/useRealm";
 import { useGetTokenOwnerRecord } from "@/app/hooks/useVoterRecord";
-import { VoterWeightType } from "@/app/hooks/useVoterWeight";
 import { useDaoMeta } from "@/app/providers/dao-provider";
 import { StandardButton } from "@/app/ui/buttons";
 import { Spinner } from "@/app/ui/animations";
@@ -14,8 +13,8 @@ import { ellipsify, getLink, txDropErrorMsg } from "@/app/utils/ui-utils";
 import { useConnection } from "@solana/wallet-adapter-react";
 
 export function Delegate(
-    {closeModal, voterWeight}:
-    {closeModal: () => void, voterWeight: UseQueryResult<VoterWeightType | null, Error>}
+    {closeModal}:
+    {closeModal: () => void}
 ) {
     const realmMeta = useDaoMeta() as RealmMetaType
     const tokenOwnerRecord = useGetTokenOwnerRecord(realmMeta.name).data
@@ -64,7 +63,7 @@ export function Delegate(
                 The delegate can vote on your behalf. You can remove delegate at any time.
             </p>
             {
-                voterWeight.data?.selfAmount.delegate &&
+                tokenOwnerRecord?.governanceDelegate &&
                     <div className="text-secondary-text text-sm mb-4">
                         <div className="flex gap-2 items-center">
                             Current Delegate:
@@ -76,9 +75,9 @@ export function Delegate(
                                 Remove
                             </button>
                         </div>
-                        <Link href={getLink(voterWeight.data.selfAmount.delegate.toBase58(), "account", realmMeta.network)}>
+                        <Link href={getLink(tokenOwnerRecord.governanceDelegate.toBase58(), "account", realmMeta.network)}>
                         <span className="text-primary-text text-[12px] cursor-pointer">
-                            {ellipsify(voterWeight.data.selfAmount.delegate.toBase58(),16)}
+                            {ellipsify(tokenOwnerRecord.governanceDelegate.toBase58(),16)}
                         </span>
                         </Link>
                     </div>
@@ -93,7 +92,7 @@ export function Delegate(
                     w-full p-3 rounded-lg z-20 border-[1px] mb-4"
                 value={address}
                 style={{backgroundColor: realmMeta.secondaryBackground, borderColor: realmMeta.optionsSelected }}
-                disabled={!voterWeight.data}
+                disabled={!tokenOwnerRecord}
                 onChange={(e) => setAddress(e.target.value)}
             />
 

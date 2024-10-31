@@ -1,0 +1,607 @@
+{
+  "address": "EoKpGErCsD4UEbbY6LX4MLWBUjmoAxqKdU4fdtLuzK6M",
+  "metadata": {
+    "name": "bonk_plugin",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "create_registrar",
+      "discriminator": [
+        132,
+        235,
+        36,
+        49,
+        139,
+        66,
+        202,
+        69
+      ],
+      "accounts": [
+        {
+          "name": "registrar",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  97,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "realm"
+              },
+              {
+                "kind": "account",
+                "path": "governing_token_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "governance_program_id"
+        },
+        {
+          "name": "previous_voter_weight_plugin_program_id",
+          "optional": true
+        },
+        {
+          "name": "realm"
+        },
+        {
+          "name": "stake_pool"
+        },
+        {
+          "name": "governing_token_mint"
+        },
+        {
+          "name": "realm_authority",
+          "signer": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_voter_weight_record",
+      "discriminator": [
+        184,
+        249,
+        133,
+        178,
+        88,
+        152,
+        250,
+        186
+      ],
+      "accounts": [
+        {
+          "name": "registrar"
+        },
+        {
+          "name": "voter_weight_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  116,
+                  101,
+                  114,
+                  45,
+                  119,
+                  101,
+                  105,
+                  103,
+                  104,
+                  116,
+                  45,
+                  114,
+                  101,
+                  99,
+                  111,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registrar.realm",
+                "account": "Registrar"
+              },
+              {
+                "kind": "account",
+                "path": "registrar.governing_token_mint",
+                "account": "Registrar"
+              },
+              {
+                "kind": "arg",
+                "path": "governing_token_owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "stake_deposit_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  45,
+                  100,
+                  101,
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  45,
+                  114,
+                  101,
+                  99,
+                  111,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "voter_weight_record"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "governing_token_owner",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "update_voter_weight_record",
+      "discriminator": [
+        45,
+        185,
+        3,
+        36,
+        109,
+        190,
+        115,
+        169
+      ],
+      "accounts": [
+        {
+          "name": "registrar"
+        },
+        {
+          "name": "input_voter_weight",
+          "docs": [
+            "An account that is either of type TokenOwnerRecordV2 or VoterWeightRecord",
+            "depending on whether the registrar includes a predecessor or not"
+          ]
+        },
+        {
+          "name": "voter_weight_record",
+          "writable": true
+        },
+        {
+          "name": "stake_deposit_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  45,
+                  100,
+                  101,
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  45,
+                  114,
+                  101,
+                  99,
+                  111,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "voter_weight_record"
+              }
+            ]
+          }
+        },
+        {
+          "name": "voter_token_owner_record"
+        },
+        {
+          "name": "governance"
+        },
+        {
+          "name": "proposal",
+          "optional": true
+        },
+        {
+          "name": "voter_authority",
+          "signer": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "stake_receipts_count",
+          "type": "u8"
+        },
+        {
+          "name": "action_target",
+          "type": "pubkey"
+        },
+        {
+          "name": "action",
+          "type": {
+            "defined": {
+              "name": "VoterWeightAction"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Registrar",
+      "discriminator": [
+        193,
+        202,
+        205,
+        51,
+        78,
+        168,
+        150,
+        128
+      ]
+    },
+    {
+      "name": "StakeDepositRecord",
+      "discriminator": [
+        111,
+        36,
+        227,
+        41,
+        149,
+        207,
+        98,
+        20
+      ]
+    },
+    {
+      "name": "VoterWeightRecord",
+      "discriminator": [
+        46,
+        249,
+        155,
+        75,
+        153,
+        248,
+        116,
+        9
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidRealmAuthority",
+      "msg": "Invalid Realm Authority"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidGoverningToken",
+      "msg": "The mint of the stake pool is different from the realm"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidVoterWeightRecordRealm",
+      "msg": "Invalid VoterWeightRecord Realm"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidVoterWeightRecordMint",
+      "msg": "Invalid VoterWeightRecord Mint"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidStakePool",
+      "msg": "Invalid Stake Pool"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidTokenOwnerForVoterWeightRecord",
+      "msg": "Invalid TokenOwner for VoterWeightRecord"
+    },
+    {
+      "code": 6006,
+      "name": "VoterDoesNotOwnDepositReceipt",
+      "msg": "The owner of the receipt does not match"
+    },
+    {
+      "code": 6007,
+      "name": "DuplicatedReceiptDetected",
+      "msg": "The deposit receipt was already provided"
+    },
+    {
+      "code": 6008,
+      "name": "ExpiredStakeDepositReceipt",
+      "msg": "The stake deposit receipt has already expired"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidStakeDuration",
+      "msg": "The stake deposit receipt will expire before proposal"
+    },
+    {
+      "code": 6010,
+      "name": "ReceiptsCountMismatch",
+      "msg": "The stake deposit receipts count does not match"
+    },
+    {
+      "code": 6011,
+      "name": "ProposalAccountIsRequired",
+      "msg": "Proposal account is required for Cast Vote action"
+    },
+    {
+      "code": 6012,
+      "name": "ActionTargetMismatch",
+      "msg": "Action target is different from the public key of the proposal"
+    },
+    {
+      "code": 6013,
+      "name": "MaximumDepositsReached",
+      "msg": "Maximum deposits length reached"
+    }
+  ],
+  "types": [
+    {
+      "name": "Registrar",
+      "docs": [
+        "Registrar which stores Token Voting configuration for the given Realm"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "governance_program_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "realm",
+            "type": "pubkey"
+          },
+          {
+            "name": "realm_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "governing_token_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "stake_pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "previous_voter_weight_plugin_program_id",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                8
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "StakeDepositRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "deposits",
+            "type": {
+              "vec": "pubkey"
+            }
+          },
+          {
+            "name": "weight_action_target",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "weight_action",
+            "type": {
+              "option": {
+                "defined": {
+                  "name": "VoterWeightAction"
+                }
+              }
+            }
+          },
+          {
+            "name": "deposits_len",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "previous_voter_weight",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoterWeightAction",
+      "docs": [
+        "VoterWeightAction enum as defined in spl-governance-addin-api",
+        "It's redefined here for Anchor to export it to IDL"
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "CastVote"
+          },
+          {
+            "name": "CommentProposal"
+          },
+          {
+            "name": "CreateGovernance"
+          },
+          {
+            "name": "CreateProposal"
+          },
+          {
+            "name": "SignOffProposal"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoterWeightRecord",
+      "docs": [
+        "VoterWeightRecord account as defined in spl-governance-addin-api",
+        "It's redefined here without account_discriminator for Anchor to treat it as native account",
+        "",
+        "The account is used as an api interface to provide voting power to the governance program from external addin contracts"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "realm",
+            "type": "pubkey"
+          },
+          {
+            "name": "governing_token_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "governing_token_owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "voter_weight",
+            "type": "u64"
+          },
+          {
+            "name": "voter_weight_expiry",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "weight_action",
+            "type": {
+              "option": {
+                "defined": {
+                  "name": "VoterWeightAction"
+                }
+              }
+            }
+          },
+          {
+            "name": "weight_action_target",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                8
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "constants": [
+    {
+      "name": "SPL_TOKEN_STAKING_PROGRAM_ID",
+      "type": "pubkey",
+      "value": "STAKEkKzbdeKkqzKpLkNQD3SUuLgshDKCD7U8duxAbB"
+    }
+  ]
+}

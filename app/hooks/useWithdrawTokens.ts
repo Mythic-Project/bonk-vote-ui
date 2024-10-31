@@ -4,11 +4,10 @@ import { Governance, TokenOwnerRecord } from "test-governance-sdk";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { VsrClient } from "../plugin/VoterStakeRegistry/client";
 import { useGetRegistrar } from "./useVsr";
 import { withdrawTokensHandler } from "../actions/withdrawTokens";
 import { VoteRecordWithGov } from "./useVoteRecord";
-import { VoterWeightType } from "./useVoterWeight";
+import { TokenVoterClient } from "../plugin/TokenVoter/client";
 
 export function useWithdrawTokens(name: string) {
     const wallet = useWallet()
@@ -24,15 +23,11 @@ export function useWithdrawTokens(name: string) {
                 amount, 
                 tokenOwnerRecord, 
                 voteRecords,
-                voterWeight,
-                depositMint
             }:
             {
                 amount: BN, 
                 tokenOwnerRecord: TokenOwnerRecord, 
                 voteRecords: VoteRecordWithGov[],
-                voterWeight: VoterWeightType,
-                depositMint: PublicKey
             }
         ): Promise<string | null> => {
 
@@ -41,7 +36,7 @@ export function useWithdrawTokens(name: string) {
             }
 
             const govClient = new Governance(connection, new PublicKey(selectedRealm.programId))
-            const vsrClient = registrar === null ? undefined : VsrClient(connection, registrar.programId)
+            const vsrClient = registrar === null ? undefined : TokenVoterClient(connection, registrar.programId)
             const publicKey = wallet.publicKey
 
             const sig = await withdrawTokensHandler(
@@ -50,12 +45,10 @@ export function useWithdrawTokens(name: string) {
                 govClient,
                 new PublicKey(selectedRealm.realmId),
                 new PublicKey(selectedRealm.tokenMint),
-                depositMint,
                 publicKey,
                 amount,
                 tokenOwnerRecord,
                 voteRecords,
-                voterWeight,
                 registrar,
                 vsrClient
             )

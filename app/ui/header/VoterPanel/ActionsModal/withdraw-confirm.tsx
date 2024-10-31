@@ -10,7 +10,6 @@ import { useWithdrawTokens } from "@/app/hooks/useWithdrawTokens";
 import Link from "next/link";
 import { useGetTokenOwnerRecord } from "@/app/hooks/useVoterRecord";
 import { VoteRecordWithGov } from "@/app/hooks/useVoteRecord";
-import { VoterWeightType } from "@/app/hooks/useVoterWeight";
 import { Spinner } from "@/app/ui/animations";
 import { getLink, txDropErrorMsg } from "@/app/utils/ui-utils";
 import { PublicKey } from "@solana/web3.js";
@@ -22,8 +21,6 @@ export function ConfirmWithdraw(
         setAmount,
         setWithdrawPage,
         voteRecords,
-        voterWeight,
-        selectedMint
     } :
     {
         closeModal: () => void,
@@ -31,8 +28,6 @@ export function ConfirmWithdraw(
         setAmount: (s: string) => void,
         setWithdrawPage: (n: 1 | 2 | 3) => void,
         voteRecords: VoteRecordWithGov[],
-        voterWeight: VoterWeightType,
-        selectedMint: PublicKey
     }
 ) {
     const realmMeta = useDaoMeta() as RealmMetaType
@@ -60,7 +55,7 @@ export function ConfirmWithdraw(
             return
         }
 
-        await withdrawTokensFn({amount, tokenOwnerRecord, voteRecords, voterWeight, depositMint: selectedMint})
+        await withdrawTokensFn({amount, tokenOwnerRecord, voteRecords})
         setWithdrawPage(3)
     }
 

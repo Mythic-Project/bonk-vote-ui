@@ -5,8 +5,9 @@ import { Governance } from "test-governance-sdk";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { VsrClient } from "../plugin/VoterStakeRegistry/client";
 import { useGetRegistrar } from "./useVsr";
+import { BonkPluginClient } from "../plugin/BonkPlugin/client";
+import { TokenVoterClient } from "../plugin/TokenVoter/client";
 
 export function useAddTokens(name: string) {
     const wallet = useWallet()
@@ -27,7 +28,7 @@ export function useAddTokens(name: string) {
             }
         
             const govClient = new Governance(connection, new PublicKey(selectedRealm.programId))
-            const vsrClient = registrar === null ? undefined : VsrClient(connection, registrar.programId)
+            const vsrClient = registrar === null ? undefined : TokenVoterClient(connection, registrar.programId)
             const publicKey = wallet.publicKey
         
             const sig = await addTokensHandler(
@@ -44,7 +45,7 @@ export function useAddTokens(name: string) {
                 vsrClient,
             )
 
-            return sig
+            return "sig"
         },
         onSuccess: async() => {
             client.resetQueries({

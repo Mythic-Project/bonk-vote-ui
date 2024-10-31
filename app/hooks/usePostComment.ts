@@ -5,7 +5,7 @@ import { PublicKey } from "@solana/web3.js";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { postMessageHandler } from "../actions/postMessage";
 import { useGetRegistrar } from "./useVsr";
-import { VsrClient } from "../plugin/VoterStakeRegistry/client";
+import { BonkPluginClient } from "../plugin/BonkPlugin/client";
 
 export function usePostMessage(name: string) {
     const wallet = useWallet()
@@ -37,7 +37,7 @@ export function usePostMessage(name: string) {
         
             const govClient = new Governance(connection, new PublicKey(selectedRealm.programId))
             const realm = new PublicKey(selectedRealm.realmId)
-            const vsrClient = registrar === null ? undefined : VsrClient(connection, registrar.programId)
+            const vsrClient = registrar === null ? undefined : BonkPluginClient(connection, registrar.programId)
             const tokenMint = new PublicKey(selectedRealm.tokenMint)
 
             const signature = await postMessageHandler(
@@ -53,7 +53,7 @@ export function usePostMessage(name: string) {
                 message,
                 messageType,
                 replyTo,
-                vsrClient
+                // vsrClient
             )
 
             return signature

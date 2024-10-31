@@ -5,11 +5,12 @@ import { RealmMetaType } from "@/app/hooks/useRealm"
 import { useDaoMeta } from "@/app/providers/dao-provider"
 import { useState } from "react"
 import { RxCross1 } from "react-icons/rx"
-import { ProposalV2, TokenOwnerRecord, VoteRecord } from "test-governance-sdk"
+import { ProposalV2, VoteRecord } from "test-governance-sdk"
 import { StandardButton } from "../../buttons"
 import { Spinner } from "../../animations"
 import Link from "next/link"
 import { getLink, txDropErrorMsg } from "@/app/utils/ui-utils"
+import { TokenOwnerRecordWithPluginData } from "@/app/hooks/useVoterRecord"
 
 function ProposalComment(
     {proposal, closeModal, denyVote, votes, tokenOwnerRecord, delegateRecords, voteRecords, allVotesCasted, setInitialFetch}:
@@ -18,8 +19,8 @@ function ProposalComment(
         closeModal: () => void,
         denyVote: boolean,
         votes: number[],
-        tokenOwnerRecord: TokenOwnerRecord | null | undefined,
-        delegateRecords: TokenOwnerRecord[] | null | undefined,
+        tokenOwnerRecord: TokenOwnerRecordWithPluginData | null | undefined,
+        delegateRecords: TokenOwnerRecordWithPluginData[] | null | undefined,
         voteRecords: VoteRecord[] | null | undefined,
         allVotesCasted: boolean,
         setInitialFetch: (b: boolean) => void

@@ -98,5 +98,31 @@
         "actionBackground": "#373940",
         "activateGradient": false,
         "useShadeForWallet": false
+    },
+    {
+        "name": "plugin",
+        "network": "devnet",
+        "realmId": "35cM2ep77w7tzNH87jzCsjD1YviM2pYYmdTtCmWH88T3",
+        "programId": "GovER5Lthms3bLBqWub97yVrMmEogzX7xNjdXpPPCVZw",
+        "tokenMint": "CNn775UxX7keRiwF4Y4LZgfsbYHNiVPF1Axe2veQzTz6",
+        "tokenType": "community",
+        "banner": "/image/bonk.png",
+        "mainColor": "#FF5C01",
+        "secondaryColor": "#4C3321",
+        "thirdColor": "#FFD71C",
+        "tickColor": "#FFFFFF",
+        "gradientOne": "#FF6202",
+        "gradientTwo": "#FFD71C",
+        "mainBackgroundImg": "/image/bonk-logo.png",
+        "primaryBackground": "#191919",
+        "primaryBackgroundShade": "linear-gradient(to bottom, #2B3649, #000205)",
+        "optionsBackground": "rgb(255,255,255,0.2)",
+        "optionsSequenceColor": "#2B2B2B",
+        "secondaryBackground": "rgb(255,255,255,0.2)",
+        "optionsSelected": "#4F4F4F",
+        "optionsDark": "#151515",
+        "actionBackground": "rgb(255,255,255,0.2)",
+        "activateGradient": true,
+        "useShadeForWallet": true
     }
 ]

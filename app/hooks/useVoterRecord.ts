@@ -1,20 +1,35 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { useQuery } from "@tanstack/react-query";
-import { Governance } from "test-governance-sdk";
+import { Governance, TokenOwnerRecord } from "test-governance-sdk";
 import { useGetRealmMeta } from "./useRealm";
+import { useGetRegistrar } from "./useVsr";
+import { DEFAULT_TOKEN_VOTER_PROGRAM_ID, tokenVwrKey } from "../plugin/TokenVoter/utils";
+import BN from "bn.js";
+import { StakeDepositReceiptType, StakeIdlClient } from "../plugin/TokenStaking/client";
+import { ProgramAccount } from "@coral-xyz/anchor";
+
+export interface TokenOwnerRecordWithPluginData extends TokenOwnerRecord {
+    tokenVoter: {
+        voterWeight: BN,
+        voterWeightExpiry: BN | null
+    } | null,
+    stakeDepositReceipts: ProgramAccount<StakeDepositReceiptType>[] | null
+}
 
 export function useGetTokenOwnerRecord(name: string) {
     const {connection} = useConnection()
     const {publicKey} = useWallet()
+    const registrar = useGetRegistrar(name).data
     const selectedRealm = useGetRealmMeta(name)
 
     return useQuery({
+        enabled: registrar !== undefined,
         queryKey: ['get-token-record', {
             name,
             tokenOwner: publicKey
         }],
-        queryFn: async() => {
+        queryFn: async(): Promise<TokenOwnerRecordWithPluginData | null> => {
             if (!publicKey || !selectedRealm) {
                 return null
             }
@@ -26,11 +41,44 @@ export function useGetTokenOwnerRecord(name: string) {
             const token = new PublicKey(tokenMint)
 
             const govRpc = new Governance(connection, daoProgramId)
+            const stakingClient = StakeIdlClient(connection);
 
             try {
                 const tokenRecord = await govRpc.getTokenOwnerRecord(realm, publicKey, token)
                 console.log("fetched token owner record")
-                return tokenRecord
+
+                const returnTokenRecord: TokenOwnerRecordWithPluginData = {
+                    ...tokenRecord, 
+                    tokenVoter: null, 
+                    stakeDepositReceipts: []
+                }
+
+                if (registrar) {
+                    const stakePool = registrar.data.stakePool
+                    const [tokenVwrAddress] = tokenVwrKey(realm, token, publicKey, DEFAULT_TOKEN_VOTER_PROGRAM_ID)
+                    const tokenVwr = await govRpc.getVoterWeightRecord(tokenVwrAddress)
+                    returnTokenRecord.tokenVoter = tokenVwr
+
+                    const stakeDepositReceipts = await stakingClient.account.stakeDepositReceipt.all([
+                        {
+                            memcmp: {
+                              offset: 8,
+                              bytes: publicKey.toBase58(),
+                            }     
+                        },
+                        {
+                            memcmp: {
+                              offset: 72,
+                              bytes: stakePool.toBase58(),
+                            },       
+                        }
+                    ])
+
+                    returnTokenRecord.stakeDepositReceipts = stakeDepositReceipts
+                    console.log("fetched plugin info for TOR")
+                }
+
+                return returnTokenRecord
             } catch {
                 return null
             } 
@@ -74,13 +122,15 @@ export function useGetDelegateRecords(name: string) {
     const {connection} = useConnection()
     const {publicKey} = useWallet()
     const selectedRealm = useGetRealmMeta(name)
+    const registrar = useGetRegistrar(name).data
 
     return useQuery({
+        enabled: registrar !== undefined,
         queryKey: ['get-delegate-records', {
             name,
             delegate: publicKey
         }],
-        queryFn: async() => {
+        queryFn: async(): Promise<TokenOwnerRecordWithPluginData[] | null> => {
             if (!publicKey || !selectedRealm) {
                 return null
             }
@@ -92,7 +142,8 @@ export function useGetDelegateRecords(name: string) {
             const token = new PublicKey(tokenMint)
 
             const govRpc = new Governance(connection, daoProgramId)
-            
+            const stakingClient = StakeIdlClient(connection);
+
             try {
                 const delegateRecord = await govRpc.getDelegateRecordsForUserInRealm(realm, publicKey, token)
                 const selfTORKey = govRpc.pda.tokenOwnerRecordAccount({
@@ -102,7 +153,47 @@ export function useGetDelegateRecords(name: string) {
                 }).publicKey
 
                 console.log("fetched delegate record")
-                return delegateRecord.filter(record => !record.publicKey.equals(selfTORKey))
+
+                const records = delegateRecord.filter(record => !record.publicKey.equals(selfTORKey)).map(
+                    r => ({...r, tokenVoter: null, stakeDepositReceipts: null})
+                )
+
+                const returnRecords: TokenOwnerRecordWithPluginData[] = []
+
+                if (registrar) {
+                    const stakePool = registrar.data.stakePool
+
+                    for (const record of records) {
+                        const recordItem: TokenOwnerRecordWithPluginData = record
+
+                        const [tokenVwrAddress] = tokenVwrKey(
+                            realm, token, record.governingTokenOwner, DEFAULT_TOKEN_VOTER_PROGRAM_ID
+                        )
+                        const tokenVwr = await govRpc.getVoterWeightRecord(tokenVwrAddress)
+                        recordItem.tokenVoter = tokenVwr
+    
+                        const stakeDepositReceipts = await stakingClient.account.stakeDepositReceipt.all([
+                            {
+                                memcmp: {
+                                  offset: 0,
+                                  bytes: publicKey.toBase58(),
+                                }            
+                            },
+                            {
+                                memcmp: {
+                                  offset: 72,
+                                  bytes: stakePool.toBase58(),
+                                },       
+                            }
+                        ])
+    
+                        recordItem.stakeDepositReceipts = stakeDepositReceipts
+                        returnRecords.push(recordItem)
+                    }
+                    console.log("fetched plugin info for delegate TOR")
+                }
+
+                return registrar ? returnRecords : records
             } catch {
                 return null
             }

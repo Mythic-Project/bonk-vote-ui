@@ -2,8 +2,8 @@ import { useConnection } from "@solana/wallet-adapter-react"
 import { useGetRealmConfig, useGetRealmMeta, useGetRealmMetaById } from "./useRealm"
 import { PublicKey } from "@solana/web3.js"
 import { useQuery } from "@tanstack/react-query"
-import { VsrClient } from "../plugin/VoterStakeRegistry/client"
-import { registrarKey } from "../plugin/VoterStakeRegistry/utils"
+import { BonkPluginClient } from "../plugin/BonkPlugin/client"
+import { registrarKey } from "../plugin/BonkPlugin/utils"
 
 export function useGetRegistrar(name: string) {
     const {connection} = useConnection()
@@ -28,7 +28,7 @@ export function useGetRegistrar(name: string) {
                 return null
             }
 
-            const vsrClient = VsrClient(connection, voterWeightAddin)
+            const vsrClient = BonkPluginClient(connection, voterWeightAddin)
 
             const registrar = registrarKey(
                 realmConfig.realm,

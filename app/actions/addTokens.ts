@@ -3,10 +3,12 @@ import { Connection, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, TransactionInstructi
 import BN from "bn.js";
 import sendTransaction from "../utils/send-transaction";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { DepositEntry, Registrar, voterRecordKey, vsrRecordKey } from "../plugin/VoterStakeRegistry/utils";
 import { Program } from "@coral-xyz/anchor";
-import { VoterStakeRegistry } from "../plugin/VoterStakeRegistry/idl";
 import * as anchor from "@coral-xyz/anchor";
+import { Registrar } from "../plugin/BonkPlugin/utils";
+import { TokenVoter } from "../plugin/TokenVoter/type";
+import { registrarKey, tokenVoterKey, tokenVwrKey } from "../plugin/TokenVoter/utils";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 async function addTokensHandler(
     connection: Connection,
@@ -19,12 +21,12 @@ async function addTokensHandler(
     userAccount: PublicKey,
     amount: BN,
     registrarData: Registrar | null,
-    vsrClient?: Program<VoterStakeRegistry> | undefined
+    tokenVoterClient?: Program<TokenVoter> | undefined
 ) {
     const ixs: TransactionInstruction[] = []
 
     // VSR Deposit
-    if (registrarData && vsrClient) {
+    if (registrarData && tokenVoterClient) {
         const tokenOwnerRecordKey = ixClient.pda.tokenOwnerRecordAccount({
             realmAccount, governingTokenMintAccount: tokenMint, governingTokenOwner: userAccount
         }).publicKey
@@ -38,24 +40,19 @@ async function addTokensHandler(
             ixs.push(createTokenOwnerRecordIx)
         }
 
-        const [voterKey, voterBump] = voterRecordKey(realmAccount, tokenMint, userAccount, vsrClient.programId)
-        const [vwrKey, vwrBump] = vsrRecordKey(realmAccount, tokenMint, userAccount, vsrClient.programId)
-        const voterAta = anchor.utils.token.associatedAddress({mint: depositMint, owner: voterKey})
-
-        let deposits: DepositEntry[] = []
+        const tokenRegistrarKey = registrarKey(realmAccount, tokenMint, tokenVoterClient.programId)
+        const [voterKey] = tokenVoterKey(realmAccount, tokenMint, userAccount, tokenVoterClient.programId)
+        const [tokenVwr] = tokenVwrKey(realmAccount, tokenMint, userAccount, tokenVoterClient.programId)
 
         try {
-            const voterAccount = await vsrClient.account.voter.fetch(voterKey)
-            deposits.push(...voterAccount.deposits)
+            const voterAccount = await tokenVoterClient.account.voter.fetch(voterKey)
         } catch {
-            const createVoterIx = await vsrClient.methods.createVoter(voterBump, vwrBump)
-            .accounts({
-                registrar: registrarData.publicKey,
+            const createVoterIx = await tokenVoterClient.methods.createVoterWeightRecord()
+            .accountsPartial({
+                registrar: tokenRegistrarKey,
                 voter: voterKey,
-                voterAuthority: userAccount,
-                voterWeightRecord: vwrKey,
-                instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                payer: userAccount
+                voterWeightRecord: tokenVwr,
+                voterAuthority: userAccount
             }).instruction()
         
             ixs.push(createVoterIx)
@@ -63,50 +60,15 @@ async function addTokensHandler(
 
         let depositEntryIndex = 0
 
-        let availableDeposit = deposits.findIndex(
-            deposit => deposit.isUsed && deposit.lockup.kind.none && 
-                registrarData.data.votingMints[deposit.votingMintConfigIdx].mint.equals(depositMint)
-        )
-
-        if (availableDeposit === -1) {
-            availableDeposit = deposits.findIndex(deposit => !deposit.isUsed)
-
-            if (availableDeposit === -1 && deposits.length > 0) {
-                throw new Error("No deposit entry space is available.")
-            }
-
-            availableDeposit = availableDeposit === -1 ? 0 : availableDeposit
-            depositEntryIndex = availableDeposit
-
-            const createDepositEntryIx = await vsrClient.methods.createDepositEntry(
-                    availableDeposit,
-                    {none: {}},
-                    null,
-                    0,
-                    false
-                ).accounts({
-                    registrar: registrarData.publicKey,
-                    voter: voterKey,
-                    voterAuthority: userAccount,
-                    depositMint,
-                    vault: voterAta,
-                    payer: userAccount
-                }).instruction()
-
-            ixs.push(createDepositEntryIx)
-        } else {
-            depositEntryIndex = availableDeposit
-        }
-
-        const depositIx = await vsrClient.methods.deposit(
+        const depositIx = await tokenVoterClient.methods.deposit(
                 depositEntryIndex, 
                 amount
-            ).accounts({
-                registrar: registrarData.publicKey,
-                voter: voterKey,
-                vault: voterAta,
-                depositToken: tokenAccount,
-                depositAuthority: userAccount
+            ).accountsPartial({
+                mint: tokenMint,
+                tokenOwnerRecord: tokenOwnerRecordKey,
+                depositAuthority: wallet.publicKey ?? undefined,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                registrar: tokenRegistrarKey
             }).instruction()
         
         ixs.push(depositIx)
