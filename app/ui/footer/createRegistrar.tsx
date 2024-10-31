@@ -39,7 +39,7 @@ export default function CreateRegistrar() {
       // const proposalKey = govClient.pda.proposalAccount(
       //   {governanceAccount: realmAuthority, proposalSeed: seed, governingTokenMint: councilToken}
       // ).publicKey
-      const proposalKey = new PublicKey("969RbgiQfmxHpuieZqcrR9vGtXbHbXLaYnrt9zPuprxN")
+      const proposalKey = new PublicKey("DWvcZcnx5UCULcGwPjYwFvuPf34TJgHT6mviFauzUedf")
 
       const tokenOwnerRecordAddress = govClient.pda.tokenOwnerRecordAccount({
         realmAccount: realm,
@@ -115,20 +115,20 @@ export default function CreateRegistrar() {
 
       // tx.add(proposalIx)
       
-      const innerIxs = [createMaxVoterWeightRecordIx, configureMintIx, createBonkRegistrarIx]
+      const innerIxs = [createBonkRegistrarIx]
 
-      for (let i = 0; i<2;i++) {
+      // for (let i = 0; i<2;i++) {
         const insertIx = await govClient.insertTransactionInstruction(
-          [innerIxs[i]], 0, 1+i, 0, realmAuthority, proposalKey, tokenOwnerRecordAddress, publicKey, publicKey
+          [innerIxs[0]], 0, 3, 0, realmAuthority, proposalKey, tokenOwnerRecordAddress, publicKey, publicKey
         )
         tx.add(insertIx)
-      }
+      // }
 
-      // const signOffProposal = await govClient.signOffProposalInstruction(
-      //   realm, realmAuthority, proposalKey, publicKey, undefined, tokenOwnerRecordAddress
-      // )
+      const signOffProposal = await govClient.signOffProposalInstruction(
+        realm, realmAuthority, proposalKey, publicKey, undefined, tokenOwnerRecordAddress
+      )
 
-      // tx.add(signOffProposal)
+      tx.add(signOffProposal)
       
       const tokenOwnerReco = await govClient.getTokenOwnerRecordByPubkey(tokenOwnerRecordAddress)
       console.log(tokenOwnerReco.governanceDelegate, tokenOwnerReco.governingTokenOwner.toBase58())
