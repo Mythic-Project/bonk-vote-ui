@@ -1,11 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import CreateRegistrar from "./createRegistrar";
 
 export function Footer() {
     return (
         <div className="m-8 w-full flex flex-col items-center gap-3 text-xs text-secondary-text">
-            <CreateRegistrar />
             <div className="flex items-center gap-4">
                 <Link href="#">
                     <Image src="/image/github.png" width={36} height={36} alt="github" />
