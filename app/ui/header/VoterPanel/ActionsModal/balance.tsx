@@ -1,5 +1,5 @@
-import { VoterWeightTokensType } from "@/app/hooks/useVoterWeight";
 import { removeZeros } from "@/app/utils/ui-utils";
+import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 
 export function calculateBalance(amount: BN, decimals: number) {
@@ -13,7 +13,7 @@ export function calculateBalance(amount: BN, decimals: number) {
     return baseString+deciSign+removeZeros(deciString)
 }
 
-export function calculateWithdrawableBalance(amounts: VoterWeightTokensType[]) {
+export function calculateWithdrawableBalance(amounts: {mint: PublicKey, amount: BN}[]) {
     const balances = []
 
     for (const amount of amounts) {
