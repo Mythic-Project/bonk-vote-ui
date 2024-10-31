@@ -117,18 +117,18 @@ export default function CreateRegistrar() {
       
       const innerIxs = [createMaxVoterWeightRecordIx, configureMintIx, createBonkRegistrarIx]
 
-      for (let i = 0; i<innerIxs.length;i++) {
+      for (let i = 0; i<2;i++) {
         const insertIx = await govClient.insertTransactionInstruction(
           [innerIxs[i]], 0, 1+i, 0, realmAuthority, proposalKey, tokenOwnerRecordAddress, publicKey, publicKey
         )
         tx.add(insertIx)
       }
 
-      const signOffProposal = await govClient.signOffProposalInstruction(
-        realm, realmAuthority, proposalKey, publicKey, undefined, tokenOwnerRecordAddress
-      )
+      // const signOffProposal = await govClient.signOffProposalInstruction(
+      //   realm, realmAuthority, proposalKey, publicKey, undefined, tokenOwnerRecordAddress
+      // )
 
-      tx.add(signOffProposal)
+      // tx.add(signOffProposal)
       
       const tokenOwnerReco = await govClient.getTokenOwnerRecordByPubkey(tokenOwnerRecordAddress)
       console.log(tokenOwnerReco.governanceDelegate, tokenOwnerReco.governingTokenOwner.toBase58())
