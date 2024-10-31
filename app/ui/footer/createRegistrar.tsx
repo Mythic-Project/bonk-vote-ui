@@ -33,11 +33,13 @@ export default function CreateRegistrar() {
       const realmAuthority = new PublicKey("Uq5BRkVfdBpMknZJHw6huS3dunEgJpUDv3M2DG3BfQg")
       const pvsVoterProgramId = new PublicKey("HA99cuBQCCzZu1zuHN2qBxo2FBo1cxNLwKkdt6Prhy8v")
       const councilToken = new PublicKey("G3EzHHXPd434o31FKxd32eYQ673eDjyYiWWNZpMk9ppt")
-      const seed = Keypair.generate().publicKey
+      // const seed = Keypair.generate().publicKey
+      const seed = new PublicKey("GPmUgZdY7R7ov3q56unTKCT9eRKcsXCESx7QGjSXaSJf")
 
-      const proposalKey = govClient.pda.proposalAccount(
-        {governanceAccount: realmAuthority, proposalSeed: seed, governingTokenMint: councilToken}
-      ).publicKey
+      // const proposalKey = govClient.pda.proposalAccount(
+      //   {governanceAccount: realmAuthority, proposalSeed: seed, governingTokenMint: councilToken}
+      // ).publicKey
+      const proposalKey = new PublicKey("969RbgiQfmxHpuieZqcrR9vGtXbHbXLaYnrt9zPuprxN")
 
       const tokenOwnerRecordAddress = govClient.pda.tokenOwnerRecordAccount({
         realmAccount: realm,
@@ -96,28 +98,28 @@ export default function CreateRegistrar() {
         payer: publicKey
       }).instruction()
   
-      const proposalIx = await govClient.createProposalInstruction(
-        "Configure new Plugin",
-        "",
-        {choiceType: "single", multiChoiceOptions: null},
-        ["Approve"],
-        true,
-        realm,
-        realmAuthority,
-        tokenOwnerRecordAddress,
-        councilToken,
-        publicKey,
-        publicKey,
-        seed
-      )
+      // const proposalIx = await govClient.createProposalInstruction(
+      //   "Configure new Plugin",
+      //   "",
+      //   {choiceType: "single", multiChoiceOptions: null},
+      //   ["Approve"],
+      //   true,
+      //   realm,
+      //   realmAuthority,
+      //   tokenOwnerRecordAddress,
+      //   councilToken,
+      //   publicKey,
+      //   publicKey,
+      //   seed
+      // )
 
-      tx.add(proposalIx)
+      // tx.add(proposalIx)
       
-      const innerIxs = [createTokenRegistrarIx, createMaxVoterWeightRecordIx, configureMintIx, createBonkRegistrarIx]
+      const innerIxs = [createMaxVoterWeightRecordIx, configureMintIx, createBonkRegistrarIx]
 
       for (let i = 0; i<innerIxs.length;i++) {
         const insertIx = await govClient.insertTransactionInstruction(
-          [innerIxs[i]], 0, i, 0, realmAuthority, proposalKey, tokenOwnerRecordAddress, publicKey, publicKey
+          [innerIxs[i]], 0, 1+i, 0, realmAuthority, proposalKey, tokenOwnerRecordAddress, publicKey, publicKey
         )
         tx.add(insertIx)
       }
