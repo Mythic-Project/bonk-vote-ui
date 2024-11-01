@@ -64,9 +64,6 @@ export function useWithdrawTokens(name: string) {
                 queryKey: ['get-token-record', {name, tokenOwner: wallet.publicKey}]
             })
             await client.invalidateQueries({
-                queryKey: ['get-voter-weight', {name, tokenOwner: wallet.publicKey}]
-            })
-            await client.invalidateQueries({
                 queryKey: [
                     'get-tokens-holding', {name, publicKey: wallet.publicKey}]
             })

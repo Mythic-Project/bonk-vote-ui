@@ -28,7 +28,7 @@ export function useGetRegistrar(name: string) {
                 return null
             }
 
-            const vsrClient = BonkPluginClient(connection, voterWeightAddin)
+            const bonkClient = BonkPluginClient(connection, voterWeightAddin)
 
             const registrar = registrarKey(
                 realmConfig.realm,
@@ -37,7 +37,7 @@ export function useGetRegistrar(name: string) {
             )
 
             try {
-                const registrarData = await vsrClient.account.registrar.fetch(registrar)
+                const registrarData = await bonkClient.account.registrar.fetch(registrar)
                 console.log("fetched registrar")
                 return {
                     data: registrarData,

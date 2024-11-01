@@ -59,9 +59,6 @@ export function useAddTokens(name: string) {
                 queryKey: [
                     'get-tokens-holding', {name, publicKey: wallet.publicKey}]
             })
-            await client.invalidateQueries({
-                queryKey: ['get-voter-weight', {name, tokenOwner: wallet.publicKey}]
-            })
         }
     })
 }

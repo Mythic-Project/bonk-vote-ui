@@ -8,13 +8,15 @@ import { DEFAULT_TOKEN_VOTER_PROGRAM_ID, tokenVwrKey } from "../plugin/TokenVote
 import BN from "bn.js";
 import { StakeDepositReceiptType, StakeIdlClient } from "../plugin/TokenStaking/client";
 import { ProgramAccount } from "@coral-xyz/anchor";
+import { DEFAULT_BONK_PLUGIN_PROGRAM_ID, bonkVwrKey } from "../plugin/BonkPlugin/utils";
 
 export interface TokenOwnerRecordWithPluginData extends TokenOwnerRecord {
     tokenVoter: {
         voterWeight: BN,
         voterWeightExpiry: BN | null
     } | null,
-    stakeDepositReceipts: ProgramAccount<StakeDepositReceiptType>[] | null
+    stakeDepositReceipts: ProgramAccount<StakeDepositReceiptType>[] | null,
+    bonkVoterExists: boolean 
 }
 
 export function useGetTokenOwnerRecord(name: string) {
@@ -50,31 +52,51 @@ export function useGetTokenOwnerRecord(name: string) {
                 const returnTokenRecord: TokenOwnerRecordWithPluginData = {
                     ...tokenRecord, 
                     tokenVoter: null, 
-                    stakeDepositReceipts: []
+                    stakeDepositReceipts: [],
+                    bonkVoterExists: false
                 }
 
                 if (registrar) {
                     const stakePool = registrar.data.stakePool
                     const [tokenVwrAddress] = tokenVwrKey(realm, token, publicKey, DEFAULT_TOKEN_VOTER_PROGRAM_ID)
-                    const tokenVwr = await govRpc.getVoterWeightRecord(tokenVwrAddress)
-                    returnTokenRecord.tokenVoter = tokenVwr
+                    const [bonkVwrAddress] = bonkVwrKey(realm, token, publicKey, DEFAULT_BONK_PLUGIN_PROGRAM_ID)
 
-                    const stakeDepositReceipts = await stakingClient.account.stakeDepositReceipt.all([
-                        {
-                            memcmp: {
-                              offset: 8,
-                              bytes: publicKey.toBase58(),
-                            }     
-                        },
-                        {
-                            memcmp: {
-                              offset: 72,
-                              bytes: stakePool.toBase58(),
-                            },       
-                        }
-                    ])
+                    try {
+                        const tokenVwr = await govRpc.getVoterWeightRecord(tokenVwrAddress)
+                        returnTokenRecord.tokenVoter = tokenVwr
+                    } catch {
+                        returnTokenRecord.tokenVoter = null
+                    }
+                   
 
-                    returnTokenRecord.stakeDepositReceipts = stakeDepositReceipts
+                    try {
+                        const stakeDepositReceipts = await stakingClient.account.stakeDepositReceipt.all([
+                            {
+                                memcmp: {
+                                  offset: 8,
+                                  bytes: publicKey.toBase58(),
+                                }     
+                            },
+                            {
+                                memcmp: {
+                                  offset: 72,
+                                  bytes: stakePool.toBase58(),
+                                },       
+                            }
+                        ])
+    
+                        returnTokenRecord.stakeDepositReceipts = stakeDepositReceipts
+                    } catch {
+                        returnTokenRecord.stakeDepositReceipts = null
+                    }
+                    
+                    try {
+                        const bonkVwr = await govRpc.getVoterWeightRecord(bonkVwrAddress)
+                        returnTokenRecord.bonkVoterExists = bonkVwr ? true : false 
+                    } catch {
+                        returnTokenRecord.bonkVoterExists = false
+                    }
+
                     console.log("fetched plugin info for TOR")
                 }
 
@@ -155,7 +177,7 @@ export function useGetDelegateRecords(name: string) {
                 console.log("fetched delegate record")
 
                 const records = delegateRecord.filter(record => !record.publicKey.equals(selfTORKey)).map(
-                    r => ({...r, tokenVoter: null, stakeDepositReceipts: null})
+                    r => ({...r, tokenVoter: null, stakeDepositReceipts: null, bonkVoterExists: false})
                 )
 
                 const returnRecords: TokenOwnerRecordWithPluginData[] = []
@@ -169,26 +191,41 @@ export function useGetDelegateRecords(name: string) {
                         const [tokenVwrAddress] = tokenVwrKey(
                             realm, token, record.governingTokenOwner, DEFAULT_TOKEN_VOTER_PROGRAM_ID
                         )
-                        const tokenVwr = await govRpc.getVoterWeightRecord(tokenVwrAddress)
-                        recordItem.tokenVoter = tokenVwr
-    
-                        const stakeDepositReceipts = await stakingClient.account.stakeDepositReceipt.all([
-                            {
-                                memcmp: {
-                                  offset: 0,
-                                  bytes: publicKey.toBase58(),
-                                }            
-                            },
-                            {
-                                memcmp: {
-                                  offset: 72,
-                                  bytes: stakePool.toBase58(),
-                                },       
-                            }
-                        ])
-    
-                        recordItem.stakeDepositReceipts = stakeDepositReceipts
-                        returnRecords.push(recordItem)
+
+                        const [bonkVwrAddress] = bonkVwrKey(
+                            realm, token, record.governingTokenOwner, DEFAULT_BONK_PLUGIN_PROGRAM_ID
+                        )
+
+
+                        try {
+                            const tokenVwr = await govRpc.getVoterWeightRecord(tokenVwrAddress)
+                            recordItem.tokenVoter = tokenVwr
+                            
+                            const stakeDepositReceipts = await stakingClient.account.stakeDepositReceipt.all([
+                                {
+                                    memcmp: {
+                                      offset: 0,
+                                      bytes: publicKey.toBase58(),
+                                    }            
+                                },
+                                {
+                                    memcmp: {
+                                      offset: 72,
+                                      bytes: stakePool.toBase58(),
+                                    },       
+                                }
+                            ])
+        
+                            recordItem.stakeDepositReceipts = stakeDepositReceipts
+
+                            const bonkVwr = await govRpc.getVoterWeightRecord(bonkVwrAddress)
+                            recordItem.bonkVoterExists = bonkVwr ? true : false 
+                            returnRecords.push(recordItem)
+                        } catch(e) {
+                            console.log(e)
+                            continue;
+                        }
+                        
                     }
                     console.log("fetched plugin info for delegate TOR")
                 }

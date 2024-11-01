@@ -71,10 +71,6 @@ export function useDelegateTokens(name: string) {
             await client.invalidateQueries({
                 queryKey: ['get-token-record', {name, tokenOwner: wallet.publicKey}]
             })
-
-            await client.invalidateQueries({
-                queryKey: ['get-voter-weight', {name, tokenOwner: wallet.publicKey}]
-            })
         }
     })
 }

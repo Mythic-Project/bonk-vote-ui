@@ -8,24 +8,32 @@ import Modal from "react-modal"
 import { customStyles } from "../style/modal-style"
 import TransitionContent from "./content"
 import { BN } from "bn.js"
+import { useGetTokenOwnerRecord } from "@/app/hooks/useVoterRecord"
+import { useWallet } from "@solana/wallet-adapter-react"
 
 function Transition() {
-  const realmMeta = useDaoMeta() as RealmMetaType
+  const realmMeta = useDaoMeta() as RealmMetaType;
+  const {publicKey} = useWallet();
+  const tokenOwnerRecord = useGetTokenOwnerRecord(realmMeta.name);
+
   const [modalIsOpen, setIsOpen] = useState(true);
 
-  // Show the popup if the user has some tokens in the default TOR but the DAO is using VSR
+  // Show the popup if the user does not have the plugin properly configured.
   return (
-    // voteWeight && voteWeight.selfAmount.isVsr && voteWeight.selfAmount.defaultTokens.gt(new BN(0)) ?
-    // <Modal
-    //   isOpen={modalIsOpen}
-    //   onRequestClose={() => setIsOpen(false)}
-    //   style={customStyles(realmMeta.primaryBackground, realmMeta.primaryBackgroundShade)}
-    //   contentLabel="Voter Weight"
-    //   ariaHideApp={false}
-    // >
-    //   <TransitionContent closeModal={setIsOpen}/>
-    // </Modal> :
-    ""
+    tokenOwnerRecord.isFetched && publicKey ?
+      tokenOwnerRecord.data && tokenOwnerRecord.data.bonkVoterExists && tokenOwnerRecord.data.tokenVoter ?
+        "" :
+        <Modal
+          isOpen={modalIsOpen}
+          onRequestClose={() => setIsOpen(false)}
+          style={customStyles(realmMeta.primaryBackground, realmMeta.primaryBackgroundShade)}
+          contentLabel="Voter Weight"
+          ariaHideApp={false}
+          shouldCloseOnOverlayClick={false}
+        >
+          <TransitionContent closeModal={setIsOpen} />
+        </Modal>
+      : ""
   )
 }
 

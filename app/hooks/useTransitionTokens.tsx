@@ -8,27 +8,31 @@ import { useGetRegistrar } from "./useVsr";
 import transitionTokensHandler from "../actions/transitionTokens";
 import { VoteRecordWithGov } from "./useVoteRecord";
 import { BonkPluginClient } from "../plugin/BonkPlugin/client";
+import { useGetTokenOwnerRecord } from "./useVoterRecord";
+import { TokenVoterClient } from "../plugin/TokenVoter/client";
 
 export function useTransitionTokens(name: string) {
     const wallet = useWallet()
     const {connection} = useConnection()
     const selectedRealm = useGetRealmMeta(name)
     const registrar = useGetRegistrar(name).data
+    const tokenOwnerRecord = useGetTokenOwnerRecord(name).data
     const client = useQueryClient()
 
     return useMutation({
       mutationKey: ["transition-tokens-mutation", {name, publicKey: wallet.publicKey}],
       mutationFn: async(
-          {amount, voteRecords, tokenOwnerRecord}:
-          {amount: BN, voteRecords: VoteRecordWithGov[], tokenOwnerRecord: TokenOwnerRecord}
+          {amount, voteRecords}:
+          {voteRecords: VoteRecordWithGov[], amount?: BN}
       ) => {
 
-        if (!selectedRealm || !wallet.publicKey || !registrar) {
-            return null
+        if (!selectedRealm || !wallet.publicKey || !registrar || tokenOwnerRecord === undefined) {
+          return null
         }
     
         const govClient = new Governance(connection, new PublicKey(selectedRealm.programId))
-        const vsrClient = BonkPluginClient(connection, registrar.programId)
+        const bonkClient = BonkPluginClient(connection)
+        const tokenClient = TokenVoterClient(connection)
         const publicKey = wallet.publicKey
         
         const sig = await transitionTokensHandler(
@@ -38,28 +42,26 @@ export function useTransitionTokens(name: string) {
           new PublicKey(selectedRealm.realmId),
           new PublicKey(selectedRealm.tokenMint),
           publicKey,
-          amount,
-          // registrar,
-          // vsrClient,
+          registrar,
+          bonkClient,
+          tokenClient,
           voteRecords,
-          tokenOwnerRecord
+          tokenOwnerRecord,
+          amount
         )
         // return sig
       },
       onSuccess: async() => {
         client.resetQueries({
-            queryKey: ['get-token-record', {name, tokenOwner: wallet.publicKey}]
+          queryKey: ['get-token-record', {name, tokenOwner: wallet.publicKey}]
         })
         
         await client.invalidateQueries({
-            queryKey: ['get-token-record', {name, tokenOwner: wallet.publicKey}]
+          queryKey: ['get-token-record', {name, tokenOwner: wallet.publicKey}]
         })
         await client.invalidateQueries({
-            queryKey: [
-                'get-tokens-holding', {name, publicKey: wallet.publicKey}]
-        })
-        await client.invalidateQueries({
-            queryKey: ['get-voter-weight', {name, tokenOwner: wallet.publicKey}]
+          queryKey: [
+            'get-tokens-holding', {name, publicKey: wallet.publicKey}]
         })
       }
     })
