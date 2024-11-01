@@ -2,7 +2,7 @@ import { IdlAccounts, web3 } from "@coral-xyz/anchor";
 import { BonkPlugin } from "./type";
 import { PublicKey } from "@solana/web3.js";
 
-export const DEFAULT_BONK_PLUGIN_PROGRAM_ID = new web3.PublicKey("9T5hXfLs1ju8shgeaPdtBXFHc8CpmmyPEpLHGEVUHiwz")
+export const DEFAULT_BONK_PLUGIN_PROGRAM_ID = new web3.PublicKey("EoKpGErCsD4UEbbY6LX4MLWBUjmoAxqKdU4fdtLuzK6M")
 
 export type Registrar = {
   data: IdlAccounts<BonkPlugin>["registrar"],
