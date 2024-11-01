@@ -8,12 +8,14 @@ import { relinquishVotesHandler } from "../actions/relinquishVote";
 import { useGetRegistrar } from "./useVsr";
 import { BonkPluginClient } from "../plugin/BonkPlugin/client";
 import { TokenOwnerRecordWithPluginData } from "./useVoterRecord";
+import { useGetDefaultGovernance } from "./useGovernance";
 
 export function useCastVote(name: string) {
     const wallet = useWallet()
     const {connection} = useConnection()
     const selectedRealm = useGetRealmMeta(name)
     const registrar = useGetRegistrar(name).data
+    const defaultGovernance = useGetDefaultGovernance(name).data
     const client = useQueryClient()
 
     return useMutation({
@@ -32,7 +34,7 @@ export function useCastVote(name: string) {
         ) => {
 
             if (!selectedRealm || !wallet.publicKey || tokenOwnerRecord === undefined || 
-                delegateRecords === undefined || registrar === undefined
+                delegateRecords === undefined || registrar === undefined || !defaultGovernance
             ) {
                 return null
             }
@@ -54,6 +56,7 @@ export function useCastVote(name: string) {
                     tokenOwnerRecord,
                     delegateRecords,
                     proposal,
+                    defaultGovernance,
                     message,
                     bonkClient
                 ) :
@@ -69,6 +72,7 @@ export function useCastVote(name: string) {
                     proposal,
                     votes,
                     denyVote,
+                    defaultGovernance,
                     message,
                     bonkClient
                 )

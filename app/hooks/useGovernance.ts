@@ -39,3 +39,32 @@ export function useGetGovernanceAccounts(name: string) {
         staleTime: Infinity
     })
 }
+
+export function useGetDefaultGovernance(name: string) {
+    const {connection} = useConnection()
+    const selectedRealm = useGetRealmMeta(name)
+    const defaultGovernance = new PublicKey("ADXh3ANbfSeCp1Zce9GquTnd58s9zNGNRj1VmKo8Hgbu")
+
+    return useQuery({
+        queryKey: ['get-default-governance', {defaultGovernance}],
+        queryFn: async() => {
+            if (!selectedRealm) {
+                return null
+            }
+            
+            const {programId} = selectedRealm
+            const daoProgramId = new PublicKey(programId)
+            const govRpc = new Governance(connection, daoProgramId)
+            
+            try {
+                const governance = await govRpc.getGovernanceAccountByPubkey(defaultGovernance)
+                console.log("fetched the default governance")
+                return governance
+            } catch {
+                return null
+            }
+        },
+        refetchOnWindowFocus: false,
+        staleTime: Infinity
+    })
+}

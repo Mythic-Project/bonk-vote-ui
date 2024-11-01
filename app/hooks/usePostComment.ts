@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { postMessageHandler } from "../actions/postMessage";
 import { useGetRegistrar } from "./useVsr";
 import { BonkPluginClient } from "../plugin/BonkPlugin/client";
+import { TokenOwnerRecordWithPluginData } from "./useVoterRecord";
 
 export function usePostMessage(name: string) {
     const wallet = useWallet()
@@ -21,8 +22,8 @@ export function usePostMessage(name: string) {
             {proposal, message, tokenOwnerRecord, delegateRecords, messageType, replyTo} :
             {
                 proposal: ProposalV2,
-                tokenOwnerRecord: TokenOwnerRecord | null | undefined,
-                delegateRecords: TokenOwnerRecord[] | null | undefined,
+                tokenOwnerRecord: TokenOwnerRecordWithPluginData | null | undefined,
+                delegateRecords: TokenOwnerRecordWithPluginData[] | null | undefined,
                 message: string,
                 messageType: "text" | "reaction",
                 replyTo?: PublicKey
@@ -37,7 +38,7 @@ export function usePostMessage(name: string) {
         
             const govClient = new Governance(connection, new PublicKey(selectedRealm.programId))
             const realm = new PublicKey(selectedRealm.realmId)
-            const vsrClient = registrar === null ? undefined : BonkPluginClient(connection, registrar.programId)
+            const bonkClient = registrar === null ? undefined : BonkPluginClient(connection, registrar.programId)
             const tokenMint = new PublicKey(selectedRealm.tokenMint)
 
             const signature = await postMessageHandler(
@@ -53,7 +54,7 @@ export function usePostMessage(name: string) {
                 message,
                 messageType,
                 replyTo,
-                // vsrClient
+                bonkClient
             )
 
             return signature

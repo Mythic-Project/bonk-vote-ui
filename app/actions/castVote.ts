@@ -1,11 +1,11 @@
 import { Program } from "@coral-xyz/anchor";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { Connection, Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { Governance, VoteChoice, ProposalV2 } from "test-governance-sdk";
+import { AccountMeta, Connection, Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { Governance, VoteChoice, ProposalV2, GovernanceAccount } from "test-governance-sdk";
 import sendTransaction from "../utils/send-transaction";
 import BN from "bn.js"
 import { BonkPlugin } from "../plugin/BonkPlugin/type";
-import { bonkSdrKey, bonkVwrKey, registrarKey } from "../plugin/BonkPlugin/utils";
+import { StakeDepositRecord, bonkSdrKey, bonkVwrKey, registrarKey } from "../plugin/BonkPlugin/utils";
 import { TokenOwnerRecordWithPluginData } from "../hooks/useVoterRecord";
 import { DEFAULT_TOKEN_VOTER_PROGRAM_ID, tokenVwrKey } from "../plugin/TokenVoter/utils";
 
@@ -21,6 +21,7 @@ export async function castVoteHandler(
     proposal: ProposalV2,
     votes: number[],
     denyVote: boolean,
+    defaultGovernance: GovernanceAccount,
     message?: string,
     bonkClient?: Program<BonkPlugin> | undefined
 ) {
@@ -51,23 +52,10 @@ export async function castVoteHandler(
             const inputVoterWeight = tokenVwrKey(realmAccount, tokenMint, userAccount, DEFAULT_TOKEN_VOTER_PROGRAM_ID)[0]
             const stakeDepositRecordKey = bonkSdrKey(vwrKey, bonkClient.programId)[0]
             const stakeDepositRecord = await bonkClient.account.stakeDepositRecord.fetch(stakeDepositRecordKey)
-
-            let sdrs = tokenOwnerRecord.stakeDepositReceipts?.map(sdr => (
-                {
-                    pubkey: sdr.publicKey,
-                    isSigner: false,
-                    isWritable: false
-                }
-            ))
-            
-            if (stakeDepositRecord.weightActionTarget?.equals(proposal.publicKey)) {
-                sdrs = sdrs?.filter(s => {
-                    return stakeDepositRecord.deposits.map(k => k.toBase58()).includes(s.pubkey.toBase58())
-                })
-            }
+            const sdrs = filterSdr(tokenOwnerRecord, stakeDepositRecord, proposal, defaultGovernance)
             
             const updateVoterRecordIx = await bonkClient.methods.updateVoterWeightRecord(
-                sdrs?.length ?? 0,
+                sdrs.length,
                 proposal.publicKey,
                 {castVote: {}}
             )
@@ -81,10 +69,8 @@ export async function castVoteHandler(
                     proposal: proposal.publicKey,
                     payer: userAccount
                 })
-                .remainingAccounts(sdrs ?? [])
+                .remainingAccounts(sdrs)
                 .instruction()
-
-            console.log(updateVoterRecordIx.keys.map(k => ({...k, pubkey: k.pubkey.toBase58()})))
             
             ixs.push(updateVoterRecordIx)
         }
@@ -113,25 +99,12 @@ export async function castVoteHandler(
                 vwrKey = bonkVwrKey(realmAccount, tokenMint, record.governingTokenOwner, bonkClient.programId)[0]
                 const inputVoterWeight = tokenVwrKey(realmAccount, tokenMint, record.governingTokenOwner, DEFAULT_TOKEN_VOTER_PROGRAM_ID)[0]
                 const stakeDepositRecordKey = bonkSdrKey(vwrKey, bonkClient.programId)[0]
+    
                 const stakeDepositRecord = await bonkClient.account.stakeDepositRecord.fetch(stakeDepositRecordKey)
-    
-                let sdrs = record.stakeDepositReceipts?.map(sdr => (
-                    {
-                        pubkey: sdr.publicKey,
-                        isSigner: false,
-                        isWritable: false
-                    }
-                ))
-    
-
-                if (stakeDepositRecord.weightActionTarget?.equals(proposal.publicKey)) {
-                    sdrs = sdrs?.filter(s => {
-                        return !stakeDepositRecord.deposits.map(k => k.toBase58()).includes(s.pubkey.toBase58())
-                    })
-                }
+                const sdrs = filterSdr(record, stakeDepositRecord, proposal, defaultGovernance)
 
                 const updateVoterRecordIx = await bonkClient.methods.updateVoterWeightRecord(
-                    sdrs?.length ?? 0,
+                    sdrs.length,
                     proposal.publicKey,
                     {castVote: {}}
                 )
@@ -144,7 +117,9 @@ export async function castVoteHandler(
                         voterAuthority: userAccount,
                         proposal: proposal.publicKey,
                         payer: userAccount
-                    }).instruction()
+                    })
+                    .remainingAccounts(sdrs)
+                    .instruction()
                 
                 ixs.push(updateVoterRecordIx)
             }
@@ -180,26 +155,12 @@ export async function castVoteHandler(
             const stakeDepositRecordKey = bonkSdrKey(vwrKey, bonkClient.programId)[0]
             const stakeDepositRecord = await bonkClient.account.stakeDepositRecord.fetch(stakeDepositRecordKey)
 
-            let sdrs = chatTor.stakeDepositReceipts?.map(sdr => (
-                {
-                    pubkey: sdr.publicKey,
-                    isSigner: false,
-                    isWritable: false
-                }
-            ))
-
-            if (stakeDepositRecord.weightActionTarget?.equals(proposal.publicKey)) {
-                sdrs = sdrs?.filter(s => {
-                    return !stakeDepositRecord.deposits.map(k => k.toBase58()).includes(s.pubkey.toBase58())
-                })
-            }
-
-            console.log(sdrs)
+            const sdrs = filterSdr(chatTor, stakeDepositRecord, proposal, defaultGovernance)
 
             const updateVoterRecordIx = await bonkClient.methods.updateVoterWeightRecord(
-                sdrs?.length ?? 0,
+                sdrs.length,
                 proposal.publicKey,
-                {castVote: {}}
+                {commentProposal: {}}
             )
                 .accounts({
                     registrar,
@@ -211,7 +172,7 @@ export async function castVoteHandler(
                     proposal: proposal.publicKey,
                     payer: userAccount
                 })
-                .remainingAccounts(sdrs ?? [])
+                .remainingAccounts(sdrs)
                 .instruction()
             
             ixs.push(updateVoterRecordIx)
@@ -238,9 +199,44 @@ export async function castVoteHandler(
         connection,
         ixs,
         wallet,
-        6,
+        2,
         message ? chatAccount : undefined
     )
 
     return signature
+}
+
+
+export function filterSdr(
+    tokenOwnerRecord: TokenOwnerRecordWithPluginData,
+    stakeDepositRecord: StakeDepositRecord,
+    proposal: ProposalV2,
+    defaultGovernance?: GovernanceAccount
+) {
+    const sdrs: AccountMeta[] = []
+
+    if (tokenOwnerRecord.stakeDepositReceipts) {
+        for (const sdr of tokenOwnerRecord.stakeDepositReceipts) {
+            const isSdrAlreadyUsed = stakeDepositRecord.weightActionTarget?.equals(proposal.publicKey) &&
+                stakeDepositRecord.deposits.map(k => k.toBase58()).includes(sdr.publicKey.toBase58())
+                        
+            if (!isSdrAlreadyUsed && proposal.votingAt) {
+                const proposalEndTime = defaultGovernance ?
+                    proposal.votingAt.toNumber() + defaultGovernance.config.votingBaseTime :
+                    Date.now()
+                    
+                const sdrEndTime = sdr.account.depositTimestamp.toNumber() + sdr.account.lockupDuration.toNumber()
+                                
+                if (sdrEndTime > proposalEndTime) {
+                    sdrs.push({
+                        pubkey: sdr.publicKey,
+                        isSigner: false,
+                        isWritable: false
+                    })
+                }
+            }
+        }
+    }
+
+    return sdrs
 }

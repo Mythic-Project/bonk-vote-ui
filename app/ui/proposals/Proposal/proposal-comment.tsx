@@ -11,6 +11,7 @@ import { Spinner } from "../../animations"
 import Link from "next/link"
 import { getLink, txDropErrorMsg } from "@/app/utils/ui-utils"
 import { TokenOwnerRecordWithPluginData } from "@/app/hooks/useVoterRecord"
+import { useGetDefaultGovernance } from "@/app/hooks/useGovernance"
 
 function ProposalComment(
     {proposal, closeModal, denyVote, votes, tokenOwnerRecord, delegateRecords, voteRecords, allVotesCasted, setInitialFetch}:
@@ -27,7 +28,8 @@ function ProposalComment(
     }
 ) {
     const realmMeta = useDaoMeta() as RealmMetaType
-    
+    const defaultGovernance = useGetDefaultGovernance(realmMeta.name)
+
     const {
         mutateAsync: castVoteFn,
         data: castVoteData,

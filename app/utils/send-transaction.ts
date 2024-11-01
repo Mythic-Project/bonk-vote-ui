@@ -1,6 +1,6 @@
 import {utils} from "@coral-xyz/anchor";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { ComputeBudgetProgram, Connection, Keypair, TransactionInstruction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { AccountMeta, ComputeBudgetProgram, Connection, Keypair, TransactionInstruction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 
 async function sendTransaction(
     connection: Connection,
@@ -57,11 +57,7 @@ async function sendTransaction(
         if (simulateResult.value.err) {
             const errObj = simulateResult.value.err as any
 
-            if (errObj.InstructionError && errObj.InstructionError[1].Custom !== 506 && 
-                errObj.InstructionError && errObj.InstructionError[1].Custom !== 1101
-            ) {
-                console.log(simulateResult.value.accounts)
-                console.log(simulateResult.value.logs)
+            if (errObj.InstructionError && errObj.InstructionError[1].Custom !== 506) {
                 throw new Error(`Transaction simulation failed. Error: ${JSON.stringify(
                     simulateResult.value.err
                 )}`)

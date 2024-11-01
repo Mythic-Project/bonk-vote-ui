@@ -10,6 +10,8 @@ export type Registrar = {
   programId: PublicKey
 }
 
+export type StakeDepositRecord = IdlAccounts<BonkPlugin>["stakeDepositRecord"]
+
 export function registrarKey(realmAddress: web3.PublicKey, tokenMint: web3.PublicKey, programId: web3.PublicKey) {
   return web3.PublicKey.findProgramAddressSync(
     [

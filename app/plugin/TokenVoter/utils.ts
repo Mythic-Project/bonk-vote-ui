@@ -1,6 +1,6 @@
 import { IdlAccounts, web3 } from "@coral-xyz/anchor";
 
-export const DEFAULT_TOKEN_VOTER_PROGRAM_ID = new web3.PublicKey("HA99cuBQCCzZu1zuHN2qBxo2FBo1cxNLwKkdt6Prhy8v")
+export const DEFAULT_TOKEN_VOTER_PROGRAM_ID = new web3.PublicKey("BUsq2cFH6cmfYcoveaf52BkPaXUW3ZhTUnFybyaJrtkN")
 
 export function registrarKey(realmAddress: web3.PublicKey, tokenMint: web3.PublicKey, programId: web3.PublicKey) {
   return web3.PublicKey.findProgramAddressSync(
