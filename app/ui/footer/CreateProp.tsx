@@ -48,7 +48,7 @@ export default function CreateRegistrar() {
       communityVoteThreshold: govData.config.communityVoteThreshold,
       communityVetoVoteThreshold: govData.config.communityVetoVoteThreshold,
       councilVetoVoteThreshold: govData.config.councilVetoVoteThreshold,
-      councilVoteThreshold: govData.config.communityVoteThreshold,
+      councilVoteThreshold: govData.config.councilVoteThreshold,
       minTransactionHoldUpTime: govData.config.minTransactionHoldUpTime,
       councilVoteTipping: govData.config.councilVoteTipping,
       communityVoteTipping: govData.config.communityVoteTipping,
