@@ -23,16 +23,17 @@ function Transition() {
     tokenOwnerRecord.isFetched && publicKey ?
       tokenOwnerRecord.data && tokenOwnerRecord.data.bonkVoterExists && tokenOwnerRecord.data.tokenVoter ?
         "" :
-        <Modal
-          isOpen={modalIsOpen}
-          onRequestClose={() => setIsOpen(false)}
-          style={customStyles(realmMeta.primaryBackground, realmMeta.primaryBackgroundShade)}
-          contentLabel="Voter Weight"
-          ariaHideApp={false}
-          shouldCloseOnOverlayClick={false}
-        >
-          <TransitionContent closeModal={setIsOpen} />
-        </Modal>
+        // <Modal
+        //   isOpen={modalIsOpen}
+        //   onRequestClose={() => setIsOpen(false)}
+        //   style={customStyles(realmMeta.primaryBackground, realmMeta.primaryBackgroundShade)}
+        //   contentLabel="Voter Weight"
+        //   ariaHideApp={false}
+        //   shouldCloseOnOverlayClick={false}
+        // >
+        //   <TransitionContent closeModal={setIsOpen} />
+        // </Modal>
+        ""
       : ""
   )
 }
