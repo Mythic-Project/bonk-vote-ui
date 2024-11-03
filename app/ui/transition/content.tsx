@@ -40,7 +40,7 @@ function TransitionContent({closeModal} : {closeModal: (b: boolean) => void}) {
     }
 
     await transitionTokensFn({
-      amount: depositTokens && tokenHolding ? new BN(tokenHolding[0].balance) : undefined,
+      amount: depositTokens && tokenHolding?.length ? new BN(tokenHolding[0].balance) : undefined,
       voteRecords
     })
 
@@ -53,7 +53,7 @@ function TransitionContent({closeModal} : {closeModal: (b: boolean) => void}) {
       <div className="text-secondary-text text-[16px] flex flex-col items-center text-center">
         <p className="">It appears that your voting profile configuration is incomplete</p>
         <p className="">Click the button below to start participating in the DAO</p>
-        {tokenHolding && daoMintInfo ?
+        {tokenHolding?.length && daoMintInfo ?
           <div className="flex gap-1 mt-4">
             <input type="checkbox" className="w-4" onChange={e => setDepositTokens(e.target.checked)}/>
             <p>Deposit </p>

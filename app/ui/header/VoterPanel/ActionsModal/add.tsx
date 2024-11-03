@@ -35,7 +35,7 @@ export function Add(
     } = useAddTokens(realmMeta.name)
 
     function setMax() {
-        if (!tokensHolding.data) return
+        if (!tokensHolding.data || !tokensHolding.data.length) return
         const amount = calculateBalance(
             new BN(tokensHolding.data[selectedToken].balance),
             tokensHolding.data[selectedToken].decimals
