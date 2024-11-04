@@ -31,7 +31,6 @@ function Transition() {
           contentLabel="Voter Weight"
           ariaHideApp={false}
           shouldCloseOnOverlayClick={false}
-          shouldCloseOnEsc={false}
         >
           <VsrTransitionContent closeModal={setIsOpen} />
         </Modal> :

@@ -29,6 +29,8 @@ function TransitionContent({closeModal} : {closeModal: (b: boolean) => void}) {
   } = useTransitionTokens(realmMeta.name)
 
   async function handleSubmit() {
+    setError("")
+    
     if (!voteRecords) {
       setError("Could not fetch the vote records. Try again.")
       return

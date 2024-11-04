@@ -49,7 +49,7 @@ export function useTransitionTokens(name: string) {
           tokenOwnerRecord,
           amount
         )
-        // return sig
+        return sig
       },
       onSuccess: async() => {
         client.resetQueries({

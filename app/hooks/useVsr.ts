@@ -4,6 +4,7 @@ import { PublicKey } from "@solana/web3.js"
 import { useQuery } from "@tanstack/react-query"
 import { BonkPluginClient } from "../plugin/BonkPlugin/client"
 import { VsrClient } from "../plugin/VoterStakeRegistry/client"
+import {  registrarKey as bonkRegistrarKey } from "../plugin/BonkPlugin/utils"
 import { VoterWithRegistrar, registrarKey, vsrVoterKey } from "../plugin/VoterStakeRegistry/utils"
 
 export function useGetRegistrar(name: string) {
@@ -31,7 +32,7 @@ export function useGetRegistrar(name: string) {
 
             const bonkClient = BonkPluginClient(connection, voterWeightAddin)
 
-            const registrar = registrarKey(
+            const registrar = bonkRegistrarKey(
                 realmConfig.realm,
                 new PublicKey(tokenMint!),
                 voterWeightAddin
@@ -45,7 +46,8 @@ export function useGetRegistrar(name: string) {
                     publicKey: registrar,
                     programId: voterWeightAddin
                 }
-            } catch {
+            } catch(e) {
+                console.log(e)
                 return null
             }
         },
