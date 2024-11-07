@@ -76,7 +76,7 @@ function VoterWeightDisplay(
                         <h3 className="font-medium mb-2">Self Voting Power</h3>
                         <h4 className="text-secondary-text flex gap-2 text-sm">
                             <span className="">My Tokens:</span>
-                           <FormatBalance decimals={0} weight={selfAmount} />
+                           <FormatBalance decimals={mintData?.[0].decimals} weight={selfAmount} />
                         </h4>
                         <h4 className="text-secondary-text flex gap-2 text-sm">                            
                             <span className="">My Votes:</span> 
