@@ -43,7 +43,7 @@ export function useGetGovernanceAccounts(name: string) {
 export function useGetDefaultGovernance(name: string) {
     const {connection} = useConnection()
     const selectedRealm = useGetRealmMeta(name)
-    const defaultGovernance = new PublicKey("ADXh3ANbfSeCp1Zce9GquTnd58s9zNGNRj1VmKo8Hgbu")
+    const defaultGovernance = new PublicKey("Uq5BRkVfdBpMknZJHw6huS3dunEgJpUDv3M2DG3BfQg")
 
     return useQuery({
         queryKey: ['get-default-governance', {defaultGovernance}],
