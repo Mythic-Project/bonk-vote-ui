@@ -31,7 +31,7 @@ function TransitionContent({closeModal} : {closeModal: (b: boolean) => void}) {
     setError("")
     
     if (!voteRecords) {
-      setError("Could not fetch the vote records. Try again.")
+      setError("Fetching the vote records. Kindly click the button again.")
       return
     }
 
@@ -62,6 +62,7 @@ function TransitionContent({closeModal} : {closeModal: (b: boolean) => void}) {
         disabled={transitionTokensPending}
         onClick={handleSubmit}
       />
+      <div className="text-sm text-secondary-text">Make sure you have at least 0.015 SOL in your wallet</div>
       {errorMsg || transitionTokensFailed &&
         <div className="text-red-400 text-sm mt-4">
           {errorMsg}
