@@ -73,14 +73,14 @@ export function useGetTokenOwnerRecord(name: string) {
                         const stakeDepositReceipts = await stakingClient.account.stakeDepositReceipt.all([
                             {
                                 memcmp: {
-                                  offset: 8,
-                                  bytes: publicKey.toBase58(),
+                                    offset: 8,
+                                    bytes: publicKey.toBase58(),
                                 }     
                             },
                             {
                                 memcmp: {
-                                  offset: 72,
-                                  bytes: stakePool.toBase58(),
+                                    offset: 72,
+                                    bytes: stakePool.toBase58(),
                                 },       
                             }
                         ])
