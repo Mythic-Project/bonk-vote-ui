@@ -50,7 +50,7 @@ function TransitionContent({closeModal} : {closeModal: (b: boolean) => void}) {
 
   return (
     <div className="flex flex-col gap-8 items-center my-4">
-      <h2 className="text-xl font-bold text-primary-text">Welcome to the new Bonk Governance Experience</h2>
+      <h2 className="text-xl font-bold text-primary-text">Welcome to the new BONK Governance Experience</h2>
       <div className="text-secondary-text text-[16px] flex flex-col items-center text-center">
         <p className="">It appears that your voting profile configuration is incomplete</p>
         <p className="">Click the button below to start participating in the DAO</p>
