@@ -27,7 +27,6 @@ export function Withdraw(
     const [errorMsg, setError] = useState("")
     const [amount, setAmount] = useState("")
     const [finalAmount, setFinalAmount] = useState<BN>(new BN(0))
-    const [selectedMint, setSelectedMint] = useState(0)
 
     const realmMeta = useDaoMeta() as RealmMetaType
     const daoMintInfo = useGetDaoMintData(realmMeta.name).data

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { customStyles } from "../../style/modal-style";
 import VoterWeight from "./voter-weight"
 import Modal from "react-modal"
@@ -10,6 +10,7 @@ import { useDaoMeta } from "@/app/providers/dao-provider";
 import { RealmMetaType } from "@/app/hooks/useRealm";
 import { useGetTokensHolding } from "@/app/hooks/useToken";
 import { BN } from "bn.js";
+import { useGetTokenOwnerRecord } from "@/app/hooks/useVoterRecord";
 
 function VoterPanel() {
     const realmMeta = useDaoMeta() as RealmMetaType
@@ -20,6 +21,14 @@ function VoterPanel() {
     const activeBalance = tokensHoldings.data ? 
         tokensHoldings.data.find(holding => holding && new BN(holding.balance).gt(new BN(0))) :
         null
+    
+    const tokenOwnerRecord = useGetTokenOwnerRecord(realmMeta.name)
+
+    const withdrawableAmount = useMemo(() => {
+        return tokenOwnerRecord.data?.tokenVoter ?
+            tokenOwnerRecord.data.tokenVoter.voterWeight :
+            new BN(0)
+    }, [tokenOwnerRecord])
 
     // 1 for Add, 2 for Withdraw, 3 for Delegate
     const [selectedAction, setSelectedAction] = useState<(number)>(1)
@@ -27,6 +36,12 @@ function VoterPanel() {
     function handleOpenModal(action: number) {
         setSelectedAction(action)
         setIsOpen(true)
+    }
+
+    function handleWithdrawClick() {
+        if (withdrawableAmount.gt(new BN(0))) {
+            handleOpenModal(2)
+        }
     }
 
     return (
@@ -39,6 +54,7 @@ function VoterPanel() {
                 <ActiveButton 
                     title="Add" 
                     onClick={() => handleOpenModal(1)} 
+                    disabled={!activeBalance}
                     mainColor={
                         activeBalance ?
                             realmMeta.mainColor :
@@ -46,7 +62,7 @@ function VoterPanel() {
                     }
                     actionBackground={realmMeta.actionBackground}
                 />
-                <StandardButton title="Withdraw" onClick={() => handleOpenModal(2)}/>
+                <StandardButton title="Withdraw" onClick={handleWithdrawClick}/>
                 <StandardButton title="Delegate" onClick={() => handleOpenModal(3)}/>
             </div>
             <Modal

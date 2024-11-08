@@ -7,7 +7,6 @@ import { Delegate } from "./delegate";
 import { useGetTokensHolding } from "@/app/hooks/useToken";
 import { RealmMetaType } from "@/app/hooks/useRealm";
 import { useDaoMeta } from "@/app/providers/dao-provider";
-import { UseQueryResult } from "@tanstack/react-query";
 
 type ActionsModalProps = {
     closeModal: () => void, 
