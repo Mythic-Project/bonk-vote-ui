@@ -124,8 +124,8 @@ async function vsrTransitionTokensHandler(
           {pubkey: vaultAtaMain, isSigner: false, isWritable: true} :
           {pubkey: vaultAtaSecondary, isSigner: false, isWritable: true}
       )
-      depositEntryIdx += 1
     }
+    depositEntryIdx += 1
   }
 
   const closeVoterIx = await vsrClient.methods.closeVoter()
