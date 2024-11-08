@@ -45,7 +45,7 @@ export function useAddTokens(name: string) {
                 vsrClient,
             )
 
-            return "sig"
+            return sig
         },
         onSuccess: async() => {
             client.resetQueries({

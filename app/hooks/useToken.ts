@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query"
 import { useGetRegistrar } from "./useVsr"
 import { PublicKey } from "@solana/web3.js"
 import * as anchor from "@coral-xyz/anchor"
-import BN from "bn.js"
 
 export interface TokenHoldingReturnType {
     mint: PublicKey,

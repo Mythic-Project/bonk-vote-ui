@@ -1,6 +1,6 @@
 import {utils} from "@coral-xyz/anchor";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { AccountMeta, ComputeBudgetProgram, Connection, Keypair, TransactionInstruction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { AccountMeta, ComputeBudgetProgram, Connection, Keypair, TransactionInstruction, TransactionMessage, VersionedTransaction, sendAndConfirmTransaction } from "@solana/web3.js";
 
 async function sendTransaction(
     connection: Connection,
@@ -128,7 +128,7 @@ async function sendTransaction(
                     new Promise((resolve) =>
                         setTimeout(() => {
                             resolve(null);
-                        }, 3000)
+                        }, 30000)
                     )
                 ])
     
