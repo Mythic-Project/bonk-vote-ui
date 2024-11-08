@@ -56,7 +56,7 @@ function TransitionContent({closeModal} : {closeModal: (b: boolean) => void}) {
         <p className="">Click the button below to start participating in the DAO</p>
       </div>
       <ActiveButton 
-        title={transitionTokensPending ? "Updating..." : "Completing Voting Profile"}
+        title={transitionTokensPending ? "Updating..." : "Complete Voting Profile"}
         mainColor={realmMeta.mainColor}
         actionBackground={realmMeta.actionBackground}
         disabled={transitionTokensPending}
