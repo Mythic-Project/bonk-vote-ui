@@ -44,7 +44,7 @@ function VsrTransitionContent({closeModal} : {closeModal: (b: boolean) => void})
 
   return (
     <div className="flex flex-col gap-8 items-center my-4">
-      <h2 className="text-xl font-bold text-primary-text">Welcome to the new Bonk Governance Experience</h2>
+      <h2 className="text-xl font-bold text-primary-text">Welcome to the new BONK Governance Experience</h2>
       <div className="text-secondary-text text-[16px] flex flex-col items-center text-center">
         <p className="">We have detected that your voter record is outdated and linked to the previous governance.</p>
         <p className="">Click the button below to close it, claim back tokens and start participating in the new governance</p>

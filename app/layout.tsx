@@ -8,8 +8,8 @@ import { TanstackProvider } from "./providers/tanstack-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Bonk DAO Voting",
-  description: "Participate in the Bonk DAO Voting. Powered by Realms",
+  title: "BONK DAO Voting",
+  description: "Participate in the BONK DAO Voting. Powered by Realms",
 };
 
 export default function RootLayout({
