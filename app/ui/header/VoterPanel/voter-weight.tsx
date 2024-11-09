@@ -19,7 +19,6 @@ function VoterWeightDisplay(
         delegateRecords: TokenOwnerRecordWithPluginData[],
         mintData: MintInfoType[] | null | undefined}
 ) {
-    const [modalIsOpen, setIsOpen] = useState(false);
     const realmMeta = useDaoMeta() as RealmMetaType
 
     const defaultMintIndex = mintData ? 
@@ -48,7 +47,7 @@ function VoterWeightDisplay(
 
     return (
         <div className="ml-2">
-            <div className="flex flex-col gap-2 items-start cursor-pointer text-sm font-small" onClick={() => setIsOpen(true)}>
+            <div className="flex flex-col gap-2 items-start cursor-pointer text-sm font-small">
                 <div className="flex gap-2"> 
                     <FormatBalance decimals={mintData?.[0].decimals} weight={totalVotesSdr}/>
                     <span className="text-secondary-text font-normal">Staked {
@@ -66,35 +65,7 @@ function VoterWeightDisplay(
                     </span>
                 } */}
             </div>
-            <Modal
-                isOpen={modalIsOpen}
-                onRequestClose={() => setIsOpen(false)}
-                style={customStyles(realmMeta.primaryBackground)}
-                contentLabel="Voter Weight"
-                ariaHideApp={false}
-            >
-                <div className="flex flex-col gap-6 py-4 px-8 items-center text-primary-text">
-                    <h2 className="font-semibold">My Voting Power</h2>
-                    <div className="flex flex-col items-center">
-                        <h3 className="font-medium mb-2">Self Voting Power</h3>
-                        <h4 className="text-secondary-text flex gap-2 text-sm">
-                            <span className="">My Tokens:</span>
-                           <FormatBalance decimals={mintData?.[0].decimals} weight={selfAmountToken} />
-                        </h4>
-                        <h4 className="text-secondary-text flex gap-2 text-sm">                            
-                            <span className="">My Votes:</span> 
-                            <FormatBalance decimals={mintData?.[0].decimals} weight={selfAmountToken} />
-                        </h4>
-                    </div>
-                    <div className="flex flex-col items-center">
-                        <h3 className="font-medium mb-2">Delegated Voting Power</h3>
-                        <h4 className="text-secondary-text flex gap-2 text-sm">
-                            <span className="">Delegated Votes:</span>
-                            <FormatBalance decimals={mintData?.[0].decimals} weight={delegateAmountToken} />
-                        </h4>
-                    </div>
-                </div>
-            </Modal>
+            
         </div>
     )
 }
