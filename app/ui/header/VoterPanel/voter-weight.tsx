@@ -11,6 +11,7 @@ import { MintInfoType, useGetDaoMintData } from "@/app/hooks/useMint"
 import FormatBalance from "./format-balance"
 import { PublicKey } from "@solana/web3.js"
 import { TokenOwnerRecordWithPluginData, useGetDelegateRecords, useGetTokenOwnerRecord } from "@/app/hooks/useVoterRecord"
+import WithdrawWrongDeposit from "./ActionsModal/withdraw-wrong-balance"
 
 function VoterWeightDisplay(
     {selfRecord, delegateRecords, mintData} :
@@ -47,7 +48,7 @@ function VoterWeightDisplay(
 
     return (
         <div className="ml-2">
-            <div className="flex flex-col gap-2 items-start cursor-pointer text-sm font-small">
+            <div className="flex flex-col gap-2 items-start text-sm font-small">
                 <div className="flex gap-2"> 
                     <FormatBalance decimals={mintData?.[0].decimals} weight={totalVotesSdr}/>
                     <span className="text-secondary-text font-normal">Staked {
@@ -58,7 +59,11 @@ function VoterWeightDisplay(
                     <span className="text-secondary-text font-normal">Deposited {
                         mintData?.[defaultMintIndex].name ? mintData[defaultMintIndex].name : "Votes"}</span>
                 </div>
-
+                {
+                    selfRecord.governingTokenDepositAmount.gt(new BN(0)) ?
+                    <WithdrawWrongDeposit /> : 
+                    ""
+                }
                 {/* {mintData?.image && 
                     <span>
                         <img src={mintData.image} width={24} height={24} alt="token image" className="rounded-full" /> 
