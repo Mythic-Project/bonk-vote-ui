@@ -8,7 +8,8 @@ async function sendTransaction(
     wallet: WalletContextState,
     chunks?: number,
     signers?: Keypair,
-    useDefaultCULimit?: boolean
+    useDefaultCULimit?: boolean,
+    largeSdrCount?: boolean
 ) {
     if (!wallet.publicKey) {
         throw new Error("The wallet is not connected.")
@@ -21,16 +22,28 @@ async function sendTransaction(
     const ixsChunks: TransactionInstruction[][] = []
     const len = instructions.length
 
-    if (chunks && len > chunks) {
+    if (largeSdrCount) {
         let chunk = 0
+        let nonce = 1
         while (chunk < len) {
-            ixsChunks.push(instructions.slice(chunk, chunk+chunks))
-            chunk += chunks
+            ixsChunks.push(instructions.slice(chunk, chunk+nonce))
+            chunk += nonce
+            nonce = 1 ? 2 : 1
         }
     } else {
-        ixsChunks.push(instructions)
+        if (chunks && len > chunks) {
+            let chunk = 0
+            while (chunk < len) {
+                ixsChunks.push(instructions.slice(chunk, chunk+chunks))
+                chunk += chunks
+            }
+        } else {
+            ixsChunks.push(instructions)
+        }
     }
-
+    
+    console.log(instructions)
+    
     ixsChunks.forEach(ixs => {
         ixs.unshift(
             ComputeBudgetProgram.setComputeUnitPrice({
