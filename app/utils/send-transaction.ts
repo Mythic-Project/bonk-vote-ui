@@ -41,9 +41,7 @@ async function sendTransaction(
             ixsChunks.push(instructions)
         }
     }
-    
-    console.log(instructions)
-    
+        
     ixsChunks.forEach(ixs => {
         ixs.unshift(
             ComputeBudgetProgram.setComputeUnitPrice({
