@@ -11,7 +11,7 @@ import { BonkPlugin } from "../plugin/BonkPlugin/type";
 import { TokenOwnerRecordWithPluginData } from "../hooks/useVoterRecord";
 import { TokenVoter } from "../plugin/TokenVoter/type";
 import { registrarKey, tokenVoterKey, tokenVwrKey } from "../plugin/TokenVoter/utils";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction } from "@solana/spl-token";
 
 async function transitionTokensHandler(
   connection: Connection,
@@ -56,6 +56,15 @@ async function transitionTokensHandler(
     })
 
     if (tokenOwnerRecord.governingTokenDepositAmount.gt(new BN(0))) {
+      const isUserAtaExist = await connection.getAccountInfo(userAta)
+
+      if (!isUserAtaExist) {
+        const createAtaIx = createAssociatedTokenAccountInstruction(
+          userAccount, userAta, userAccount, tokenMint, TOKEN_PROGRAM_ID
+        )
+        ixs.push(createAtaIx)
+      }
+
       // Withdraw tokens from the default TOR
       const vanillaWitdrawIx = await ixClient.withdrawGoverningTokensInstruction(
         realmAccount,
