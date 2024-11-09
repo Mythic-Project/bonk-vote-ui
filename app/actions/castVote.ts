@@ -3,7 +3,6 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 import { AccountMeta, Connection, Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { Governance, VoteChoice, ProposalV2, GovernanceAccount } from "test-governance-sdk";
 import sendTransaction from "../utils/send-transaction";
-import BN from "bn.js"
 import { BonkPlugin } from "../plugin/BonkPlugin/type";
 import { StakeDepositRecord, bonkSdrKey, bonkVwrKey, registrarKey } from "../plugin/BonkPlugin/utils";
 import { TokenOwnerRecordWithPluginData } from "../hooks/useVoterRecord";
