@@ -84,8 +84,11 @@ export function useGetTokenOwnerRecord(name: string) {
                                 },       
                             }
                         ])
-    
-                        returnTokenRecord.stakeDepositReceipts = stakeDepositReceipts
+
+                        const activeSdrs = stakeDepositReceipts.filter(sdr => 
+                            sdr.account.depositTimestamp.add(sdr.account.lockupDuration).toNumber() > Date.now() /1000
+                        )
+                        returnTokenRecord.stakeDepositReceipts = activeSdrs
                     } catch {
                         returnTokenRecord.stakeDepositReceipts = null
                     }
