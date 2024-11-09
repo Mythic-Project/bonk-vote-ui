@@ -235,8 +235,10 @@ export function filterSdr(
                         
             if (!isSdrAlreadyUsed && proposal.votingAt) {
                 const proposalEndTime = defaultGovernance ?
-                    proposal.votingAt.toNumber() + defaultGovernance.config.votingBaseTime :
-                    Date.now()
+                    proposal.votingAt.toNumber() + 
+                    defaultGovernance.config.votingBaseTime + 
+                    defaultGovernance.config.votingCoolOffTime 
+                :   Date.now()
                     
                 const sdrEndTime = sdr.account.depositTimestamp.toNumber() + sdr.account.lockupDuration.toNumber()
                                 
