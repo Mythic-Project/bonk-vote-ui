@@ -51,7 +51,7 @@ function VoterWeightDisplay(
             <div className="flex flex-col gap-2 items-start text-sm font-small">
                 <div className="flex gap-2"> 
                     <FormatBalance decimals={mintData?.[0].decimals} weight={totalVotesSdr}/>
-                    <span className="text-secondary-text font-normal">Staked {
+                    <span className="text-secondary-text font-normal">Locked {
                         mintData?.[defaultMintIndex].name ? mintData[defaultMintIndex].name : "Votes"}</span>
                 </div>
                 <div className="flex gap-2">
