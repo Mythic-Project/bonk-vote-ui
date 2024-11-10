@@ -56,10 +56,14 @@ function TransitionContent({closeModal} : {closeModal: (b: boolean) => void}) {
         <p className="">Click the button below to start participating in the DAO</p>
       </div>
       <ActiveButton 
-        title={transitionTokensPending ? "Updating..." : "Complete Voting Profile"}
+        title={
+          voteRecords ?
+            transitionTokensPending ? "Updating..." : "Complete Voting Profile" :
+            "Loading Vote Records, Please wait.."
+        }
         mainColor={realmMeta.mainColor}
         actionBackground={realmMeta.actionBackground}
-        disabled={transitionTokensPending}
+        disabled={transitionTokensPending || !voteRecords}
         onClick={handleSubmit}
       />
       <div className="text-sm text-secondary-text">Make sure you have at least 0.015 SOL in your wallet</div>
