@@ -50,10 +50,14 @@ function VsrTransitionContent({closeModal} : {closeModal: (b: boolean) => void})
         <p className="">Click the button below to close it, claim back tokens and start participating in the new governance</p>
       </div>
       <ActiveButton 
-        title={transitionTokensPending ? "Closing..." : "Close Old Voter"}
+        title={
+          voteRecords ?
+            transitionTokensPending ? "Closing..." : "Close Old Voter" :
+            "Loading Vote Records, Please wait.."
+        }
         mainColor={realmMeta.mainColor}
         actionBackground={realmMeta.actionBackground}
-        disabled={transitionTokensPending}
+        disabled={transitionTokensPending || !voteRecords}
         onClick={handleSubmit}
       />
       {errorMsg || transitionTokensFailed &&
