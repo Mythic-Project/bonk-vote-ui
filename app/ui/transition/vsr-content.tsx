@@ -7,6 +7,7 @@ import { useState } from "react"
 import { useGetVoteRecords } from "@/app/hooks/useVoteRecord"
 import { useGetTokenOwnerRecord } from "@/app/hooks/useVoterRecord"
 import { useVsrTransitionTokens } from "@/app/hooks/useVsrTransition"
+import { txDropErrorMsg } from "@/app/utils/ui-utils"
 
 function VsrTransitionContent({closeModal} : {closeModal: (b: boolean) => void}) {
   const realmMeta = useDaoMeta() as RealmMetaType
@@ -19,6 +20,7 @@ function VsrTransitionContent({closeModal} : {closeModal: (b: boolean) => void})
     mutateAsync: transitionTokensFn, 
     isError: transitionTokensFailed, 
     isPending: transitionTokensPending, 
+    error: transitionTokensError
   } = useVsrTransitionTokens(realmMeta.name)
 
   async function handleSubmit() {
@@ -34,11 +36,10 @@ function VsrTransitionContent({closeModal} : {closeModal: (b: boolean) => void})
       return
     }
 
-    const x = await transitionTokensFn({
+    await transitionTokensFn({
       voteRecords
     })
 
-    console.log(x)
     closeModal(true)
   }
 
@@ -59,7 +60,7 @@ function VsrTransitionContent({closeModal} : {closeModal: (b: boolean) => void})
       {errorMsg || transitionTokensFailed &&
         <div className="text-red-400 text-sm mt-4">
           {errorMsg}
-          {transitionTokensFailed && "The closing process failed, please try again."}
+          {transitionTokensFailed && txDropErrorMsg(transitionTokensError.message)}
         </div>
       }
     </div>

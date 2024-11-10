@@ -11,6 +11,7 @@ import { useGetTokensHolding } from "@/app/hooks/useToken"
 import { useGetDaoMintData } from "@/app/hooks/useMint"
 import FormatBalance from "../header/VoterPanel/format-balance"
 import { BN } from "bn.js"
+import { txDropErrorMsg } from "@/app/utils/ui-utils"
 
 function TransitionContent({closeModal} : {closeModal: (b: boolean) => void}) {
   const realmMeta = useDaoMeta() as RealmMetaType
@@ -25,6 +26,7 @@ function TransitionContent({closeModal} : {closeModal: (b: boolean) => void}) {
     mutateAsync: transitionTokensFn, 
     isError: transitionTokensFailed, 
     isPending: transitionTokensPending, 
+    error: transitionTokensError
   } = useTransitionTokens(realmMeta.name)
 
   async function handleSubmit() {
@@ -66,7 +68,7 @@ function TransitionContent({closeModal} : {closeModal: (b: boolean) => void}) {
       {errorMsg || transitionTokensFailed &&
         <div className="text-red-400 text-sm mt-4">
           {errorMsg}
-          {transitionTokensFailed && "The update process failed, please try again."}
+          {transitionTokensFailed && txDropErrorMsg(transitionTokensError.message)}
         </div>
       }
     </div>
