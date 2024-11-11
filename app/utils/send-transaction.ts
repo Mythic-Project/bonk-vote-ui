@@ -82,7 +82,7 @@ async function sendTransaction(
         if (CU_UNITS) {
             ixs.unshift(
                 ComputeBudgetProgram.setComputeUnitLimit({
-                    units: useDefaultCULimit ? 200_000 : CU_UNITS * 1.2,
+                    units: useDefaultCULimit ? 200_000 : CU_UNITS * 2,
                 })
             )
         }
