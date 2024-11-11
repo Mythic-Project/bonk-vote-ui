@@ -9,7 +9,7 @@ async function sendTransaction(
     chunks?: number,
     signers?: Keypair,
     useDefaultCULimit?: boolean,
-    largeSdrCount?: boolean
+    sdrsSet?: number
 ) {
     if (!wallet.publicKey) {
         throw new Error("The wallet is not connected.")
@@ -21,14 +21,16 @@ async function sendTransaction(
 
     const ixsChunks: TransactionInstruction[][] = []
     const len = instructions.length
-
-    if (largeSdrCount) {
+    
+    if (sdrsSet && sdrsSet > 1) {
         let chunk = 0
         let nonce = 1
+        let del = sdrsSet
         while (chunk < len) {
             ixsChunks.push(instructions.slice(chunk, chunk+nonce))
             chunk += nonce
-            nonce = 1 ? 2 : 1
+            del -= 1
+            nonce = del > 1 ? 1 : 2
         }
     } else {
         if (chunks && len > chunks) {
