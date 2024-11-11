@@ -11,13 +11,11 @@ async function sendTransaction(
     useDefaultCULimit?: boolean,
     sdrsSet?: number
 ) {
-    const sendConnection = new Connection(process.env.NEXT_PUBLIC_HELIUS_RPC as string)
-
     if (!wallet.publicKey) {
         throw new Error("The wallet is not connected.")
     }
 
-    const recentBlockhash = await sendConnection.getLatestBlockhash({
+    const recentBlockhash = await connection.getLatestBlockhash({
         commitment: "confirmed"
     })
 
@@ -65,7 +63,7 @@ async function sendTransaction(
     
         const mockTx = new VersionedTransaction(mockTxMessage)
         
-        const simulateResult = await sendConnection.simulateTransaction(mockTx, {
+        const simulateResult = await connection.simulateTransaction(mockTx, {
             commitment: "confirmed"
         })
     
@@ -120,7 +118,7 @@ async function sendTransaction(
         try {
             console.log(`${new Date().toISOString()} Subscribing to transaction confirmation`);
         
-            confirmTransactionPromise = sendConnection.confirmTransaction(
+            confirmTransactionPromise = connection.confirmTransaction(
                 {
                     signature: txSignature,
                     blockhash: recentBlockhash.blockhash,
@@ -131,7 +129,7 @@ async function sendTransaction(
         
             console.log(`${new Date().toISOString()} Sending Transaction ${txSignature}`);
     
-            await sendConnection.sendRawTransaction(signedTx.serialize(), {
+            await connection.sendRawTransaction(signedTx.serialize(), {
                 skipPreflight: false,
                 maxRetries: 0,
             });
@@ -153,7 +151,7 @@ async function sendTransaction(
         
                 console.log(`${new Date().toISOString()} Tx not confirmed after ${3000 * txSendAttempts++}ms, resending`);
         
-                await sendConnection.sendRawTransaction(signedTx.serialize(), {
+                await connection.sendRawTransaction(signedTx.serialize(), {
                     skipPreflight: false,
                     maxRetries: 0,
                 });
