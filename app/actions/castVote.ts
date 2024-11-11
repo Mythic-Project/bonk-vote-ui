@@ -39,7 +39,7 @@ export async function castVoteHandler(
         }
     })
 
-    let largeIx = false
+    let sdrsSet = 0
 
     const registrar = bonkClient ? 
         registrarKey(realmAccount, tokenMint, bonkClient.programId) : 
@@ -56,12 +56,10 @@ export async function castVoteHandler(
             const sdrs = 
             filterSdr(tokenOwnerRecord, stakeDepositRecord, proposal, defaultGovernance)
             
-            largeIx = sdrs.length > 10
+            const sdrsChunks = createSdrChunks(sdrs)
 
-            const sdrsChunks = largeIx ?
-                [sdrs.slice(0,10), sdrs.slice(10)] :
-                [sdrs]
-            
+            sdrsSet = sdrsChunks.length
+
             for (const sdrsChunk of sdrsChunks) {
                 const updateVoterRecordIx = await bonkClient.methods.updateVoterWeightRecord(
                     sdrsChunk.length,
@@ -167,8 +165,10 @@ export async function castVoteHandler(
 
             const sdrs = filterSdr(chatTor, stakeDepositRecord, proposal, defaultGovernance)
 
+            const sdrsTranche = sdrs.slice(0,10)
+
             const updateVoterRecordIx = await bonkClient.methods.updateVoterWeightRecord(
-                sdrs.length,
+                sdrsTranche.length,
                 proposal.publicKey,
                 {commentProposal: {}}
             )
@@ -182,7 +182,7 @@ export async function castVoteHandler(
                     proposal: proposal.publicKey,
                     payer: userAccount
                 })
-                .remainingAccounts(sdrs)
+                .remainingAccounts(sdrsTranche)
                 .instruction()
             
             ixs.push(updateVoterRecordIx)
@@ -212,7 +212,7 @@ export async function castVoteHandler(
         2,
         message ? chatAccount : undefined,
         undefined,
-        largeIx
+        sdrsSet
     )
 
     return signature
@@ -253,4 +253,18 @@ export function filterSdr(
     }
 
     return sdrs
+}
+
+function createSdrChunks(sdrs: AccountMeta[]) {
+    let sdrsChunks: AccountMeta[][] = []
+    let n = 0
+    let len = sdrs.length
+
+    while (len - n > 10) {
+        sdrsChunks.push(sdrs.slice(n, n + 10))
+        n = n + 10
+    }
+
+    sdrsChunks.push(sdrs.slice(n))
+    return sdrsChunks
 }
